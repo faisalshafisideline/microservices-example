@@ -9,18 +9,18 @@ public sealed record ArticleMetadata
 
     public ArticleMetadata(
         string? category = null,
-        int estimatedReadTimeMinutes = 0,
+        int EstimatedReadTimeMinutes = 0,
         string? summary = null,
         string? featuredImageUrl = null)
     {
-        if (estimatedReadTimeMinutes < 0)
-            throw new ArgumentException("Estimated read time cannot be negative", nameof(estimatedReadTimeMinutes));
+        if (EstimatedReadTimeMinutes < 0)
+            throw new ArgumentException("Estimated read time cannot be negative", nameof(EstimatedReadTimeMinutes));
 
         if (!string.IsNullOrWhiteSpace(featuredImageUrl) && !Uri.TryCreate(featuredImageUrl, UriKind.Absolute, out _))
             throw new ArgumentException("Featured image URL must be a valid URL", nameof(featuredImageUrl));
 
         Category = category?.Trim();
-        EstimatedReadTimeMinutes = estimatedReadTimeMinutes;
+        this.EstimatedReadTimeMinutes = EstimatedReadTimeMinutes;
         Summary = summary?.Trim();
         FeaturedImageUrl = featuredImageUrl?.Trim();
     }
