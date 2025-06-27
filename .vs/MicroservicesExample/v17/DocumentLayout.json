@@ -1,0 +1,259 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Practice Projects\\microservices-example\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{0848E764-B37F-4BF4-AC70-04E49E4325D5}|src\\ApiGateway\\ApiGateway.csproj|d:\\practice projects\\microservices-example\\src\\apigateway\\endpoints\\gatewayendpoints.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0848E764-B37F-4BF4-AC70-04E49E4325D5}|src\\ApiGateway\\ApiGateway.csproj|solutionrelative:src\\apigateway\\endpoints\\gatewayendpoints.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0848E764-B37F-4BF4-AC70-04E49E4325D5}|src\\ApiGateway\\ApiGateway.csproj|d:\\practice projects\\microservices-example\\src\\apigateway\\authorization\\policies.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0848E764-B37F-4BF4-AC70-04E49E4325D5}|src\\ApiGateway\\ApiGateway.csproj|solutionrelative:src\\apigateway\\authorization\\policies.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0848E764-B37F-4BF4-AC70-04E49E4325D5}|src\\ApiGateway\\ApiGateway.csproj|d:\\practice projects\\microservices-example\\src\\apigateway\\authentication\\iuserstore.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0848E764-B37F-4BF4-AC70-04E49E4325D5}|src\\ApiGateway\\ApiGateway.csproj|solutionrelative:src\\apigateway\\authentication\\iuserstore.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0848E764-B37F-4BF4-AC70-04E49E4325D5}|src\\ApiGateway\\ApiGateway.csproj|d:\\practice projects\\microservices-example\\src\\apigateway\\authentication\\hardcodedauthenticationhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0848E764-B37F-4BF4-AC70-04E49E4325D5}|src\\ApiGateway\\ApiGateway.csproj|solutionrelative:src\\apigateway\\authentication\\hardcodedauthenticationhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0848E764-B37F-4BF4-AC70-04E49E4325D5}|src\\ApiGateway\\ApiGateway.csproj|d:\\practice projects\\microservices-example\\src\\apigateway\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0848E764-B37F-4BF4-AC70-04E49E4325D5}|src\\ApiGateway\\ApiGateway.csproj|solutionrelative:src\\apigateway\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0848E764-B37F-4BF4-AC70-04E49E4325D5}|src\\ApiGateway\\ApiGateway.csproj|d:\\practice projects\\microservices-example\\src\\apigateway\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{0848E764-B37F-4BF4-AC70-04E49E4325D5}|src\\ApiGateway\\ApiGateway.csproj|solutionrelative:src\\apigateway\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{689BAE32-4A00-41EA-952B-56005D230115}|src\\ArticleService\\ArticleService.csproj|d:\\practice projects\\microservices-example\\src\\articleservice\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{689BAE32-4A00-41EA-952B-56005D230115}|src\\ArticleService\\ArticleService.csproj|solutionrelative:src\\articleservice\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 30,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:151:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:150:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:147:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:146:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:132:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:133:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:134:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:135:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:136:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:137:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:138:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:139:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:140:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:141:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:143:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:142:0:{13b12e3e-c1b4-4539-9371-4fe9a0d523fc}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:144:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:145:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:149:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:130:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:129:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:129:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:131:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:130:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:133:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:134:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:135:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "GatewayEndpoints.cs",
+              "DocumentMoniker": "D:\\Practice Projects\\microservices-example\\src\\ApiGateway\\Endpoints\\GatewayEndpoints.cs",
+              "RelativeDocumentMoniker": "src\\ApiGateway\\Endpoints\\GatewayEndpoints.cs",
+              "ToolTip": "D:\\Practice Projects\\microservices-example\\src\\ApiGateway\\Endpoints\\GatewayEndpoints.cs",
+              "RelativeToolTip": "src\\ApiGateway\\Endpoints\\GatewayEndpoints.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-27T12:00:07.714Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Policies.cs",
+              "DocumentMoniker": "D:\\Practice Projects\\microservices-example\\src\\ApiGateway\\Authorization\\Policies.cs",
+              "RelativeDocumentMoniker": "src\\ApiGateway\\Authorization\\Policies.cs",
+              "ToolTip": "D:\\Practice Projects\\microservices-example\\src\\ApiGateway\\Authorization\\Policies.cs",
+              "RelativeToolTip": "src\\ApiGateway\\Authorization\\Policies.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-27T11:59:33.746Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "IUserStore.cs",
+              "DocumentMoniker": "D:\\Practice Projects\\microservices-example\\src\\ApiGateway\\Authentication\\IUserStore.cs",
+              "RelativeDocumentMoniker": "src\\ApiGateway\\Authentication\\IUserStore.cs",
+              "ToolTip": "D:\\Practice Projects\\microservices-example\\src\\ApiGateway\\Authentication\\IUserStore.cs",
+              "RelativeToolTip": "src\\ApiGateway\\Authentication\\IUserStore.cs",
+              "ViewState": "AgIAAEwAAAAAAAAAAAAawCMAAAAhAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-27T11:58:25.236Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "HardcodedAuthenticationHandler.cs",
+              "DocumentMoniker": "D:\\Practice Projects\\microservices-example\\src\\ApiGateway\\Authentication\\HardcodedAuthenticationHandler.cs",
+              "RelativeDocumentMoniker": "src\\ApiGateway\\Authentication\\HardcodedAuthenticationHandler.cs",
+              "ToolTip": "D:\\Practice Projects\\microservices-example\\src\\ApiGateway\\Authentication\\HardcodedAuthenticationHandler.cs",
+              "RelativeToolTip": "src\\ApiGateway\\Authentication\\HardcodedAuthenticationHandler.cs",
+              "ViewState": "AgIAAGAAAAAAAAAAAAAowFgAAAAxAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-27T11:57:34.312Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "D:\\Practice Projects\\microservices-example\\src\\ApiGateway\\appsettings.json",
+              "RelativeDocumentMoniker": "src\\ApiGateway\\appsettings.json",
+              "ToolTip": "D:\\Practice Projects\\microservices-example\\src\\ApiGateway\\appsettings.json",
+              "RelativeToolTip": "src\\ApiGateway\\appsettings.json",
+              "ViewState": "AgIAAIEAAAAAAAAAAAAAAI4AAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-06-27T11:55:04.784Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "D:\\Practice Projects\\microservices-example\\src\\ArticleService\\appsettings.json",
+              "RelativeDocumentMoniker": "src\\ArticleService\\appsettings.json",
+              "ToolTip": "D:\\Practice Projects\\microservices-example\\src\\ArticleService\\appsettings.json",
+              "RelativeToolTip": "src\\ArticleService\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB4AAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-06-27T11:52:58.534Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\Practice Projects\\microservices-example\\src\\ApiGateway\\Program.cs",
+              "RelativeDocumentMoniker": "src\\ApiGateway\\Program.cs",
+              "ToolTip": "D:\\Practice Projects\\microservices-example\\src\\ApiGateway\\Program.cs",
+              "RelativeToolTip": "src\\ApiGateway\\Program.cs",
+              "ViewState": "AgIAAKIAAAAAAAAAAAAAAEYAAAAvAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-27T11:51:40.245Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
