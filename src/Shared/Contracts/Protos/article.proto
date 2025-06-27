@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package articleservice.v1;
+
+option csharp_namespace = "Shared.Contracts.Grpc";
+
+import "google/protobuf/timestamp.proto";
+
+// Article Service Definition
+service ArticleService {
+  rpc GetArticle(GetArticleRequest) returns (GetArticleResponse);
+  rpc GetArticles(GetArticlesRequest) returns (GetArticlesResponse);
+}
+
+// Request Messages
+message GetArticleRequest {
+  string article_id = 1;
+}
+
+message GetArticlesRequest {
+  repeated string article_ids = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+}
+
+// Response Messages
+message GetArticleResponse {
+  Article article = 1;
+  bool found = 2;
+}
+
+message GetArticlesResponse {
+  repeated Article articles = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+// Domain Models
+message Article {
+  string id = 1;
+  string title = 2;
+  string content = 3;
+  string author_id = 4;
+  string author_name = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+  repeated string tags = 8;
+  ArticleStatus status = 9;
+  ArticleMetadata metadata = 10;
+}
+
+message ArticleMetadata {
+  string category = 1;
+  int32 estimated_read_time_minutes = 2;
+  string summary = 3;
+  string featured_image_url = 4;
+}
+
+enum ArticleStatus {
+  ARTICLE_STATUS_UNSPECIFIED = 0;
+  ARTICLE_STATUS_DRAFT = 1;
+  ARTICLE_STATUS_PUBLISHED = 2;
+  ARTICLE_STATUS_ARCHIVED = 3;
+} 

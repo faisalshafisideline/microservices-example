@@ -1,0 +1,12 @@
+/Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/Shared/Contracts/bin/Debug/net8.0/Shared.Contracts.deps.json
+/Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/Shared/Contracts/bin/Debug/net8.0/Shared.Contracts.dll
+/Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/Shared/Contracts/bin/Debug/net8.0/Shared.Contracts.pdb
+/Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/Shared/Contracts/obj/Debug/net8.0/Shared.Contracts.csproj.AssemblyReference.cache
+/Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/Shared/Contracts/obj/Debug/net8.0/Shared.Contracts.GeneratedMSBuildEditorConfig.editorconfig
+/Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/Shared/Contracts/obj/Debug/net8.0/Shared.Contracts.AssemblyInfoInputs.cache
+/Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/Shared/Contracts/obj/Debug/net8.0/Shared.Contracts.AssemblyInfo.cs
+/Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/Shared/Contracts/obj/Debug/net8.0/Shared.Contracts.csproj.CoreCompileInputs.cache
+/Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/Shared/Contracts/obj/Debug/net8.0/Shared.Contracts.dll
+/Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/Shared/Contracts/obj/Debug/net8.0/refint/Shared.Contracts.dll
+/Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/Shared/Contracts/obj/Debug/net8.0/Shared.Contracts.pdb
+/Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/Shared/Contracts/obj/Debug/net8.0/ref/Shared.Contracts.dll
