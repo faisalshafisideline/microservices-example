@@ -173,3 +173,4 @@
 /Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/ArticleService/obj/Debug/net8.0/ArticleService.pdb
 /Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/ArticleService/obj/Debug/net8.0/ArticleService.genruntimeconfig.cache
 /Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/ArticleService/obj/Debug/net8.0/ref/ArticleService.dll
+/Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/ArticleService/obj/Debug/net8.0/ArticleService.sourcelink.json

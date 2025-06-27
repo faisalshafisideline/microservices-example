@@ -64,3 +64,4 @@
 /Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/ApiGateway/obj/Debug/net8.0/ApiGateway.pdb
 /Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/ApiGateway/obj/Debug/net8.0/ApiGateway.genruntimeconfig.cache
 /Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/ApiGateway/obj/Debug/net8.0/ref/ApiGateway.dll
+/Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/ApiGateway/obj/Debug/net8.0/ApiGateway.sourcelink.json

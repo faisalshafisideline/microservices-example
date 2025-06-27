@@ -1,0 +1,109 @@
+version: '3.8'
+
+services:
+  # Infrastructure Services
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=YourStrong@Passw0rd
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - microservices-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - microservices-network
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - microservices-network
+
+  # Application Services
+  article-service:
+    build:
+      context: .
+      dockerfile: src/ArticleService/Dockerfile
+    container_name: article-service
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8081
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=ArticleServiceDb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;
+      - ConnectionStrings__RabbitMQ=amqp://admin:admin@rabbitmq:5672
+      - RabbitMQ__Host=rabbitmq
+      - Redis__ConnectionString=redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - sqlserver
+      - rabbitmq
+      - redis
+    networks:
+      - microservices-network
+
+  reporting-service:
+    build:
+      context: .
+      dockerfile: src/ReportingService/Dockerfile
+    container_name: reporting-service
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8082
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=ReportingServiceDb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;
+      - ConnectionStrings__RabbitMQ=amqp://admin:admin@rabbitmq:5672
+      - RabbitMQ__Host=rabbitmq
+      - ArticleService__GrpcEndpoint=http://article-service:8081
+    ports:
+      - "8082:8082"
+    depends_on:
+      - sqlserver
+      - rabbitmq
+      - article-service
+    networks:
+      - microservices-network
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: src/ApiGateway/Dockerfile
+    container_name: api-gateway
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__RabbitMQ=amqp://admin:admin@rabbitmq:5672
+    ports:
+      - "8080:8080"
+    depends_on:
+      - article-service
+      - reporting-service
+    networks:
+      - microservices-network
+
+volumes:
+  sqlserver_data:
+  rabbitmq_data:
+  redis_data:
+
+networks:
+  microservices-network:
+    driver: bridge 

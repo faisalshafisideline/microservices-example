@@ -170,3 +170,4 @@
 /Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/ReportingService/obj/Debug/net8.0/ReportingService.pdb
 /Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/ReportingService/obj/Debug/net8.0/ReportingService.genruntimeconfig.cache
 /Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/ReportingService/obj/Debug/net8.0/ref/ReportingService.dll
+/Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/ReportingService/obj/Debug/net8.0/ReportingService.sourcelink.json
