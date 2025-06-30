@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Microservices Local Development Setup for macOS
-echo "🚀 Starting Microservices Solution on macOS..."
+# Apollo Sports Club Management Platform - Local Development Setup for macOS
+echo "🚀 Starting Apollo Platform on macOS..."
 
 # Check if Docker is running
 if ! docker info > /dev/null 2>&1; then
@@ -20,7 +20,7 @@ check_port() {
 
 # Check required ports
 echo "🔍 Checking required ports..."
-PORTS=(1433 5672 6379 8080 8081 8082 15672)
+PORTS=(1433 5672 6379 8080 8081 8082 8083 8084 15672)
 for port in "${PORTS[@]}"; do
     if ! check_port $port; then
         echo "Port $port is required. Please free it up and try again."
@@ -73,31 +73,60 @@ sleep 5  # Give SQL Server more time to fully start
 
 echo "✅ Infrastructure services started successfully!"
 echo ""
-echo "📋 Service URLs:"
+echo "📋 Apollo Service URLs:"
 echo "   🌐 API Gateway: http://localhost:8080"
-echo "   📝 Article Service: http://localhost:8081"
-echo "   📊 Reporting Service: http://localhost:8082"
+echo "   🔐 Auth Service: http://localhost:8081"
+echo "   🏢 Club Service: http://localhost:8082"
+echo "   👥 Member Service: http://localhost:8083"
+echo "   📧 Communication Service: http://localhost:8084"
 echo "   🐰 RabbitMQ Management: http://localhost:15672 (admin/admin)"
 echo "   📊 SQL Server: localhost,1433 (sa/YourStrong@Passw0rd)"
 echo "   🔴 Redis: localhost:6379"
 echo ""
-echo "🚀 Starting .NET services..."
+echo "🚀 Starting Apollo microservices..."
 
 # Start services in separate terminal windows/tabs
 if command -v osascript &> /dev/null; then
     # macOS with Terminal app
-    osascript -e 'tell app "Terminal" to do script "cd '$(pwd)' && echo \"🚀 Starting Article Service...\" && dotnet run --project src/ArticleService/ArticleService.csproj --urls http://localhost:8081"'
+    echo "🔐 Starting Auth Service..."
+    osascript -e 'tell app "Terminal" to do script "cd '$(pwd)' && echo \"🔐 Starting Apollo Auth Service...\" && dotnet run --project src/AuthService/AuthService.csproj --urls http://localhost:8081"'
     sleep 3
-    osascript -e 'tell app "Terminal" to do script "cd '$(pwd)' && echo \"🚀 Starting Reporting Service...\" && dotnet run --project src/ReportingService/ReportingService.csproj --urls http://localhost:8082"'
+    
+    echo "🏢 Starting Club Service..."
+    osascript -e 'tell app "Terminal" to do script "cd '$(pwd)' && echo \"🏢 Starting Apollo Club Service...\" && dotnet run --project src/ClubService/ClubService.csproj --urls http://localhost:8082"'
     sleep 3
-    osascript -e 'tell app "Terminal" to do script "cd '$(pwd)' && echo \"🚀 Starting API Gateway...\" && dotnet run --project src/ApiGateway/ApiGateway.csproj --urls http://localhost:8080"'
+    
+    echo "👥 Starting Member Service..."
+    osascript -e 'tell app "Terminal" to do script "cd '$(pwd)' && echo \"👥 Starting Apollo Member Service...\" && dotnet run --project src/MemberService/MemberService.csproj --urls http://localhost:8083"'
+    sleep 3
+    
+    echo "📧 Starting Communication Service..."
+    osascript -e 'tell app "Terminal" to do script "cd '$(pwd)' && echo \"📧 Starting Apollo Communication Service...\" && dotnet run --project src/CommunicationService/CommunicationService.csproj --urls http://localhost:8084"'
+    sleep 3
+    
+    echo "🌐 Starting API Gateway..."
+    osascript -e 'tell app "Terminal" to do script "cd '$(pwd)' && echo \"🌐 Starting Apollo API Gateway...\" && dotnet run --project src/ApiGateway/ApiGateway.csproj --urls http://localhost:8080"'
 else
     echo "📝 Manual startup required:"
-    echo "   Terminal 1: dotnet run --project src/ArticleService/ArticleService.csproj --urls http://localhost:8081"
-    echo "   Terminal 2: dotnet run --project src/ReportingService/ReportingService.csproj --urls http://localhost:8082"
-    echo "   Terminal 3: dotnet run --project src/ApiGateway/ApiGateway.csproj --urls http://localhost:8080"
+    echo "   Terminal 1: dotnet run --project src/AuthService/AuthService.csproj --urls http://localhost:8081"
+    echo "   Terminal 2: dotnet run --project src/ClubService/ClubService.csproj --urls http://localhost:8082"
+    echo "   Terminal 3: dotnet run --project src/MemberService/MemberService.csproj --urls http://localhost:8083"
+    echo "   Terminal 4: dotnet run --project src/CommunicationService/CommunicationService.csproj --urls http://localhost:8084"
+    echo "   Terminal 5: dotnet run --project src/ApiGateway/ApiGateway.csproj --urls http://localhost:8080"
 fi
 
 echo ""
-echo "✅ Setup complete! Check the new terminal windows for service logs."
-echo "🌐 Open http://localhost:8080/swagger to test the API Gateway" 
+echo "✅ Apollo Platform setup complete! Check the new terminal windows for service logs."
+echo ""
+echo "🎯 Quick Start Guide:"
+echo "   🌐 API Gateway: http://localhost:8080/swagger"
+echo "   🔐 Auth Service: http://localhost:8081/swagger"
+echo "   🏢 Club Service: http://localhost:8082/swagger"
+echo "   👥 Member Service: http://localhost:8083/swagger"
+echo "   📧 Communication Service: http://localhost:8084/swagger"
+echo ""
+echo "🔑 Default Admin Login:"
+echo "   Email: admin@apollo-sports.com"
+echo "   Password: admin123"
+echo ""
+echo "🚀 Apollo is ready for multi-tenant sports club management!" 

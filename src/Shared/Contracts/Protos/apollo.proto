@@ -1,0 +1,371 @@
+syntax = "proto3";
+
+package apollo.v1;
+
+option csharp_namespace = "Shared.Contracts.Grpc";
+
+import "google/protobuf/timestamp.proto";
+
+// ============================================================================
+// Auth Service Definition
+// ============================================================================
+service AuthService {
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+  rpc GetUsersByIds(GetUsersByIdsRequest) returns (GetUsersByIdsResponse);
+}
+
+message GetUserRequest {
+  string user_id = 1;
+}
+
+message GetUserResponse {
+  User user = 1;
+  bool found = 2;
+}
+
+message ValidateTokenRequest {
+  string token = 1;
+}
+
+message ValidateTokenResponse {
+  bool is_valid = 1;
+  User user = 2;
+  repeated string permissions = 3;
+}
+
+message GetUsersByIdsRequest {
+  repeated string user_ids = 1;
+}
+
+message GetUsersByIdsResponse {
+  repeated User users = 1;
+}
+
+message User {
+  string id = 1;
+  string email = 2;
+  string first_name = 3;
+  string last_name = 4;
+  bool is_active = 5;
+  bool email_verified = 6;
+  bool two_factor_enabled = 7;
+  repeated ClubRole club_roles = 8;
+  google.protobuf.Timestamp created_at = 9;
+}
+
+message ClubRole {
+  string club_id = 1;
+  string role = 2;
+  repeated string permissions = 3;
+}
+
+// ============================================================================
+// Club Service Definition
+// ============================================================================
+service ClubService {
+  rpc GetClub(GetClubRequest) returns (GetClubResponse);
+  rpc GetClubs(GetClubsRequest) returns (GetClubsResponse);
+  rpc GetClubsByIds(GetClubsByIdsRequest) returns (GetClubsByIdsResponse);
+  rpc ValidateClubAccess(ValidateClubAccessRequest) returns (ValidateClubAccessResponse);
+}
+
+message GetClubRequest {
+  string club_id = 1;
+}
+
+message GetClubResponse {
+  Club club = 1;
+  bool found = 2;
+}
+
+message GetClubsRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+  string country = 3;
+  ClubType club_type = 4;
+}
+
+message GetClubsResponse {
+  repeated Club clubs = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message GetClubsByIdsRequest {
+  repeated string club_ids = 1;
+}
+
+message GetClubsByIdsResponse {
+  repeated Club clubs = 1;
+}
+
+message ValidateClubAccessRequest {
+  string club_id = 1;
+  string user_id = 2;
+}
+
+message ValidateClubAccessResponse {
+  bool has_access = 1;
+  repeated string permissions = 2;
+}
+
+message Club {
+  string id = 1;
+  string name = 2;
+  string code = 3;
+  string description = 4;
+  string country = 5;
+  string currency = 6;
+  string timezone = 7;
+  string default_language = 8;
+  ClubType type = 9;
+  ClubTier tier = 10;
+  string primary_contact_email = 11;
+  string primary_contact_name = 12;
+  Address address = 13;
+  SubscriptionPlan subscription_plan = 14;
+  int32 max_members = 15;
+  int32 current_member_count = 16;
+  bool is_active = 17;
+  google.protobuf.Timestamp created_at = 18;
+}
+
+message Address {
+  string street = 1;
+  string city = 2;
+  string state = 3;
+  string postal_code = 4;
+  string country = 5;
+}
+
+enum ClubType {
+  CLUB_TYPE_UNSPECIFIED = 0;
+  CLUB_TYPE_SPORTS_CLUB = 1;
+  CLUB_TYPE_FEDERATION = 2;
+  CLUB_TYPE_LEAGUE = 3;
+  CLUB_TYPE_ACADEMY = 4;
+  CLUB_TYPE_COMMUNITY = 5;
+}
+
+enum ClubTier {
+  CLUB_TIER_UNSPECIFIED = 0;
+  CLUB_TIER_BASIC = 1;
+  CLUB_TIER_PROFESSIONAL = 2;
+  CLUB_TIER_ENTERPRISE = 3;
+}
+
+enum SubscriptionPlan {
+  SUBSCRIPTION_PLAN_UNSPECIFIED = 0;
+  SUBSCRIPTION_PLAN_FREE = 1;
+  SUBSCRIPTION_PLAN_STARTER = 2;
+  SUBSCRIPTION_PLAN_PROFESSIONAL = 3;
+  SUBSCRIPTION_PLAN_ENTERPRISE = 4;
+  SUBSCRIPTION_PLAN_CUSTOM = 5;
+}
+
+// ============================================================================
+// Member Service Definition
+// ============================================================================
+service MemberService {
+  rpc GetMember(GetMemberRequest) returns (GetMemberResponse);
+  rpc GetMembers(GetMembersRequest) returns (GetMembersResponse);
+  rpc GetMembersByClub(GetMembersByClubRequest) returns (GetMembersByClubResponse);
+  rpc GetMembersByIds(GetMembersByIdsRequest) returns (GetMembersByIdsResponse);
+}
+
+message GetMemberRequest {
+  string member_id = 1;
+}
+
+message GetMemberResponse {
+  Member member = 1;
+  bool found = 2;
+}
+
+message GetMembersRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+  MembershipStatus status = 3;
+}
+
+message GetMembersResponse {
+  repeated Member members = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message GetMembersByClubRequest {
+  string club_id = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+  MembershipStatus status = 4;
+}
+
+message GetMembersByClubResponse {
+  repeated Member members = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message GetMembersByIdsRequest {
+  repeated string member_ids = 1;
+}
+
+message GetMembersByIdsResponse {
+  repeated Member members = 1;
+}
+
+message Member {
+  string id = 1;
+  string club_id = 2;
+  string user_id = 3;
+  string member_number = 4;
+  string first_name = 5;
+  string last_name = 6;
+  string email = 7;
+  string phone = 8;
+  MembershipType membership_type = 9;
+  MembershipStatus status = 10;
+  string joined_date = 11; // LocalDate as string (YYYY-MM-DD)
+  string expiry_date = 12; // LocalDate as string (YYYY-MM-DD)
+  repeated string sports = 13;
+  repeated string teams = 14;
+  string position = 15;
+  SkillLevel skill_level = 16;
+  repeated MemberRole roles = 17;
+  bool is_club_admin = 18;
+  bool is_active = 19;
+  google.protobuf.Timestamp created_at = 20;
+}
+
+enum MembershipType {
+  MEMBERSHIP_TYPE_UNSPECIFIED = 0;
+  MEMBERSHIP_TYPE_REGULAR = 1;
+  MEMBERSHIP_TYPE_PREMIUM = 2;
+  MEMBERSHIP_TYPE_VIP = 3;
+  MEMBERSHIP_TYPE_STUDENT = 4;
+  MEMBERSHIP_TYPE_SENIOR = 5;
+  MEMBERSHIP_TYPE_FAMILY = 6;
+  MEMBERSHIP_TYPE_CORPORATE = 7;
+  MEMBERSHIP_TYPE_HONORARY = 8;
+  MEMBERSHIP_TYPE_TRIAL = 9;
+}
+
+enum MembershipStatus {
+  MEMBERSHIP_STATUS_UNSPECIFIED = 0;
+  MEMBERSHIP_STATUS_ACTIVE = 1;
+  MEMBERSHIP_STATUS_INACTIVE = 2;
+  MEMBERSHIP_STATUS_SUSPENDED = 3;
+  MEMBERSHIP_STATUS_TERMINATED = 4;
+  MEMBERSHIP_STATUS_PENDING = 5;
+}
+
+enum MemberRole {
+  MEMBER_ROLE_UNSPECIFIED = 0;
+  MEMBER_ROLE_MEMBER = 1;
+  MEMBER_ROLE_CAPTAIN = 2;
+  MEMBER_ROLE_VICE_CAPTAIN = 3;
+  MEMBER_ROLE_COACH = 4;
+  MEMBER_ROLE_TRAINER = 5;
+  MEMBER_ROLE_MANAGER = 6;
+  MEMBER_ROLE_SECRETARY = 7;
+  MEMBER_ROLE_TREASURER = 8;
+  MEMBER_ROLE_COMMITTEE = 9;
+  MEMBER_ROLE_VOLUNTEER = 10;
+}
+
+enum SkillLevel {
+  SKILL_LEVEL_UNSPECIFIED = 0;
+  SKILL_LEVEL_BEGINNER = 1;
+  SKILL_LEVEL_INTERMEDIATE = 2;
+  SKILL_LEVEL_ADVANCED = 3;
+  SKILL_LEVEL_PROFESSIONAL = 4;
+  SKILL_LEVEL_ELITE = 5;
+}
+
+// ============================================================================
+// Communication Service Definition
+// ============================================================================
+service CommunicationService {
+  rpc SendNotification(SendNotificationRequest) returns (SendNotificationResponse);
+  rpc GetNotificationStatus(GetNotificationStatusRequest) returns (GetNotificationStatusResponse);
+  rpc GetNotificationHistory(GetNotificationHistoryRequest) returns (GetNotificationHistoryResponse);
+}
+
+message SendNotificationRequest {
+  string club_id = 1;
+  repeated string recipient_ids = 2;
+  NotificationType type = 3;
+  string subject = 4;
+  string content = 5;
+  map<string, string> template_data = 6;
+  NotificationPriority priority = 7;
+  google.protobuf.Timestamp schedule_at = 8;
+}
+
+message SendNotificationResponse {
+  string notification_id = 1;
+  bool success = 2;
+  string error_message = 3;
+}
+
+message GetNotificationStatusRequest {
+  string notification_id = 1;
+}
+
+message GetNotificationStatusResponse {
+  NotificationStatus status = 1;
+  string error_message = 2;
+  google.protobuf.Timestamp sent_at = 3;
+  google.protobuf.Timestamp delivered_at = 4;
+}
+
+message GetNotificationHistoryRequest {
+  string club_id = 1;
+  string recipient_id = 2;
+  int32 page_size = 3;
+  string page_token = 4;
+}
+
+message GetNotificationHistoryResponse {
+  repeated NotificationHistory notifications = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message NotificationHistory {
+  string id = 1;
+  string club_id = 2;
+  string recipient_id = 3;
+  NotificationType type = 4;
+  string subject = 5;
+  NotificationStatus status = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp sent_at = 8;
+}
+
+enum NotificationType {
+  NOTIFICATION_TYPE_UNSPECIFIED = 0;
+  NOTIFICATION_TYPE_EMAIL = 1;
+  NOTIFICATION_TYPE_SMS = 2;
+  NOTIFICATION_TYPE_PUSH = 3;
+  NOTIFICATION_TYPE_IN_APP = 4;
+}
+
+enum NotificationPriority {
+  NOTIFICATION_PRIORITY_UNSPECIFIED = 0;
+  NOTIFICATION_PRIORITY_LOW = 1;
+  NOTIFICATION_PRIORITY_NORMAL = 2;
+  NOTIFICATION_PRIORITY_HIGH = 3;
+  NOTIFICATION_PRIORITY_URGENT = 4;
+}
+
+enum NotificationStatus {
+  NOTIFICATION_STATUS_UNSPECIFIED = 0;
+  NOTIFICATION_STATUS_PENDING = 1;
+  NOTIFICATION_STATUS_SENT = 2;
+  NOTIFICATION_STATUS_DELIVERED = 3;
+  NOTIFICATION_STATUS_FAILED = 4;
+  NOTIFICATION_STATUS_CANCELLED = 5;
+} 

@@ -1,379 +1,254 @@
-# Microservices Example - .NET 8 with API Gateway
+# 🚀 Apollo - Multi-Tenant Sports Club Management Platform
 
-A comprehensive example of a microservices architecture built with .NET 8, featuring clean architecture patterns, event-driven communication, gRPC inter-service communication, and a secure API Gateway with authentication.
+A comprehensive .NET 8 microservices architecture for managing sports clubs, members, and operations at scale.
 
-## 🏗️ Architecture Overview
+## 📊 **Scale & Impact**
+- **472,432+ users** across multiple clubs and federations
+- **Multi-tenant architecture** with club-level data isolation
+- **Multi-language support** with centralized translation management
+- **Multi-currency billing** with region-specific VAT handling
 
-This solution demonstrates a microservices architecture with **three main services**:
+## 🏗️ **Architecture Overview**
 
-### 1. API Gateway (NEW!)
-- **Purpose**: Single entry point with authentication and authorization
-- **Technology**: .NET 8 + YARP (Yet Another Reverse Proxy)
-- **Features**:
-  - Route-based request routing to backend services
-  - Basic Authentication with hardcoded users
-  - Role-based authorization policies
-  - Request/response logging and monitoring
-  - Health checking of downstream services
-  - CORS support for web clients
+### Core Microservices
+- **🔐 AuthService** - OAuth2 + JWT + Multi-tenant + 2FA
+- **🏢 ClubService** - Club/tenant management & configuration  
+- **👥 MemberService** - Member profiles & management
+- **📧 CommunicationService** - Email/SMS/Push notifications
+- **💰 PaymentService** - Billing, invoicing & multi-currency
+- **🌍 LocalizationService** - Multi-language & timezone handling
 
-### 2. Article Service
-- **Purpose**: Manages article creation and retrieval
-- **Technology**: .NET 8 Web API + gRPC Server
-- **Database**: SQL Server (ArticleDb)
-- **Responsibilities**:
-  - Create and manage articles
-  - Expose REST API endpoints (via Gateway)
-  - Provide gRPC service for inter-service communication
-  - Publish `ArticleCreatedEvent` via RabbitMQ
+### Infrastructure Services
+- **🚪 API Gateway** - YARP reverse proxy with authentication
+- **🔍 Shared Contracts** - gRPC, events, user context propagation
 
-### 3. Reporting Service
-- **Purpose**: Analytics and reporting for articles
-- **Technology**: .NET 8 Web API + gRPC Client
-- **Database**: SQL Server (ReportingDb)
-- **Responsibilities**:
-  - Track article views and analytics
-  - Consume `ArticleCreatedEvent` from RabbitMQ
-  - Call Article Service via gRPC for enriched data
-  - Provide reporting endpoints (via Gateway)
+## 🚀 **Key Features**
 
-## 🛠️ Technologies Used
+### Multi-Tenancy
+- **Club-level data isolation** with configurable database partitioning
+- **Per-club configurations**: language, currency, timezone, VAT rates
+- **Role-based access control** per club and per service
 
-- **.NET 8**: Modern C# web applications
-- **YARP**: High-performance reverse proxy for .NET
-- **Basic Authentication**: Hardcoded users for development/testing
-- **Entity Framework Core**: Database ORM
-- **gRPC**: High-performance inter-service communication
-- **RabbitMQ + MassTransit**: Event-driven messaging
-- **SQL Server**: Primary data storage
-- **Docker**: Containerization
-- **Serilog**: Structured logging
-- **Carter**: Minimal API endpoints
-- **FluentValidation**: Input validation
-- **Swagger/OpenAPI**: API documentation
+### Scalability & Performance
+- **gRPC inter-service communication** for high performance
+- **Event-driven architecture** with RabbitMQ + MassTransit
+- **CQRS pattern** with read/write separation
+- **Distributed caching** with Redis
+- **Circuit breakers & retry policies** for resilience
 
-## 🔐 Authentication & Authorization
+### Security & Compliance
+- **OAuth2 + JWT** authentication with custom server
+- **GDPR compliance** with data retention policies
+- **Encryption** at rest and in transit
+- **Multi-factor authentication** (TOTP + backup codes)
+- **Azure Key Vault** for secrets management
 
-### Hardcoded Users (Development Only)
+### Internationalization
+- **Weblate integration** for centralized translation management
+- **NodaTime** for proper timezone handling
+- **Multi-currency support** with conversion capabilities
+- **Localized email templates** and notifications
 
-| Username | Password | Roles | Access Level |
-|----------|----------|-------|--------------|
-| `admin` | `supersecret` | Admin, Reporter, User | Full access |
-| `reporter` | `report123` | Reporter, User | Reporting + basic access |
-| `author` | `write123` | Author, User | Article creation + basic access |
-| `user` | `user123` | User | Basic read access |
+## 🛠️ **Technology Stack**
 
-### Route-Based Authorization
+### Backend
+- **.NET 8** - Latest LTS with native AOT support
+- **Entity Framework Core** - Database ORM with migrations
+- **MediatR** - CQRS and mediator pattern
+- **Carter** - Minimal API framework
+- **gRPC** - High-performance inter-service communication
+- **MassTransit + RabbitMQ** - Event-driven messaging
+- **Serilog** - Structured logging with OpenTelemetry
 
-| Route | Method | Required Role | Description |
-|-------|--------|---------------|-------------|
-| `/api/articles` | GET | Public | Anyone can read articles |
-| `/api/articles` | POST | Author or Admin | Create articles |
-| `/api/articles/{id}` | PUT/PATCH | Author or Admin | Update articles |
-| `/api/articles/{id}` | DELETE | Admin | Delete articles |
-| `/api/reporting/*` | GET | Reporter or Admin | Access reporting data |
-| `/api/reporting/*` | POST | Reporter or Admin | Create reports |
-| `/api/gateway/*` | GET | Varies | Gateway management |
+### Infrastructure
+- **YARP** - Reverse proxy and API gateway
+- **Docker + Docker Compose** - Containerization
+- **Azure SQL Server** - Primary database
+- **Redis** - Distributed caching
+- **Azure Blob Storage** - File storage
+- **Azure Key Vault** - Secrets management
 
-## 📋 Prerequisites
+### Observability
+- **OpenTelemetry** - Distributed tracing
+- **Sentry** - Error monitoring
+- **Azure Application Insights** - APM and metrics
+- **Health checks** - Service monitoring
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop)
-- [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads) or Docker SQL Server container
+## 🏃‍♂️ **Quick Start**
 
-## 🚀 Quick Start
-
-### 1. Clone the Repository
-```bash
-git clone <repository-url>
-cd microservices-example
-```
-
-### 2. Start the Complete System
-```bash
-docker-compose up --build
-```
-
-This will start:
-- **API Gateway**: http://localhost:5000 (Main entry point)
-- **RabbitMQ Management**: http://localhost:15672 (admin/admin123)
-- **SQL Server** instances for both services
-- **Backend services** (internal only, accessible via Gateway)
-
-### 3. Access the System
-
-- **🌐 Main Gateway**: http://localhost:5000/swagger
-- **📊 Gateway Info**: http://localhost:5000/api/gateway
-- **🏥 Health Check**: http://localhost:5000/health
-- **🐰 RabbitMQ**: http://localhost:15672
-
-## 📡 API Endpoints (via Gateway)
-
-### Gateway Management
-- `GET /api/gateway` - Gateway information (public)
-- `GET /api/gateway/user` - Current user info (authenticated)
-- `GET /api/gateway/routes` - Available routes (admin only)
-- `POST /api/gateway/auth/test` - Test authentication (authenticated)
-
-### Article Service (via Gateway)
-- `GET /api/articles` - Get articles (public)
-- `POST /api/articles` - Create article (author/admin)
-- `GET /api/articles/{id}` - Get specific article (public)
-- `PUT /api/articles/{id}` - Update article (author/admin)
-- `DELETE /api/articles/{id}` - Delete article (admin only)
-
-### Reporting Service (via Gateway)
-- `GET /api/reporting/articles/{id}/views` - Get view stats (reporter/admin)
-- `POST /api/reporting/articles/{id}/views` - Record view (reporter/admin)
-- `GET /api/reporting/articles/top-viewed` - Top articles (reporter/admin)
-- `GET /api/reporting/authors/{id}/stats` - Author stats (reporter/admin)
-
-## 📝 Usage Examples
-
-### 1. Test Authentication
-```bash
-# Get gateway info (no auth required)
-curl http://localhost:5000/api/gateway
-
-# Get current user info (requires auth)
-curl -u admin:supersecret http://localhost:5000/api/gateway/user
-```
-
-### 2. Create an Article (Author Role Required)
-```bash
-curl -X POST "http://localhost:5000/api/articles" \
-  -u author:write123 \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Microservices with .NET 8",
-    "content": "This article explains how to build microservices...",
-    "authorId": "author-001",
-    "authorName": "John Developer",
-    "category": "Technology",
-    "tags": ["microservices", "dotnet", "architecture"],
-    "publishImmediately": true
-  }'
-```
-
-### 3. Get Articles (Public Access)
-```bash
-# No authentication required for reading articles
-curl http://localhost:5000/api/articles
-```
-
-### 4. Access Reporting Data (Reporter Role Required)
-```bash
-# Get article view statistics
-curl -u reporter:report123 \
-  "http://localhost:5000/api/reporting/articles/{articleId}/views"
-
-# Get top viewed articles
-curl -u reporter:report123 \
-  "http://localhost:5000/api/reporting/articles/top-viewed?limit=5"
-```
-
-### 5. Admin Operations (Admin Role Required)
-```bash
-# Delete an article (admin only)
-curl -X DELETE -u admin:supersecret \
-  "http://localhost:5000/api/articles/{articleId}"
-
-# Get all available routes
-curl -u admin:supersecret \
-  "http://localhost:5000/api/gateway/routes"
-```
-
-## 🔧 Configuration
-
-### Environment Variables (Docker)
-```bash
-# API Gateway
-ASPNETCORE_ENVIRONMENT=Development
-ASPNETCORE_URLS=http://+:8080
-
-# Service Discovery (automatic via Docker networking)
-# article-service:8080 (HTTP)
-# article-service:8081 (gRPC)
-# reporting-service:8080 (HTTP)
-```
-
-### Authentication Settings
-```json
-{
-  "Authentication": {
-    "DefaultScheme": "HardcodedBasic",
-    "EnableBasicAuth": true,
-    "EnableJwtAuth": false
-  }
-}
-```
-
-### YARP Proxy Configuration
-```json
-{
-  "ReverseProxy": {
-    "Routes": {
-      "article-service-route": {
-        "ClusterId": "article-service-cluster",
-        "Match": { "Path": "/api/articles/{**catch-all}" }
-      }
-    },
-    "Clusters": {
-      "article-service-cluster": {
-        "Destinations": {
-          "destination1": { "Address": "http://article-service:8080/" }
-        }
-      }
-    }
-  }
-}
-```
-
-## 🧪 Testing Authentication & Authorization
-
-### Using curl with Basic Auth
-```bash
-# Test different user roles
-curl -u admin:supersecret http://localhost:5000/api/gateway/user
-curl -u reporter:report123 http://localhost:5000/api/gateway/user
-curl -u author:write123 http://localhost:5000/api/gateway/user
-curl -u user:user123 http://localhost:5000/api/gateway/user
-
-# Test unauthorized access (should return 401)
-curl http://localhost:5000/api/gateway/user
-
-# Test forbidden access (should return 403)
-curl -u user:user123 http://localhost:5000/api/articles -X POST
-```
-
-### Using Swagger UI
-1. Navigate to http://localhost:5000/swagger
-2. Click **"Authorize"** button
-3. Enter credentials (e.g., username: `admin`, password: `supersecret`)
-4. Test different endpoints with various user roles
-
-## 🏛️ Architecture Patterns
-
-### API Gateway Pattern
-- **Single Entry Point**: All client requests go through the gateway
-- **Cross-Cutting Concerns**: Authentication, logging, rate limiting
-- **Service Discovery**: Routes requests to appropriate backend services
-- **Protocol Translation**: HTTP to gRPC where needed
-
-### Security Patterns
-- **Authentication at Gateway**: Centralized authentication logic
-- **Authorization Policies**: Role-based access control
-- **Request Enrichment**: Add user context to downstream requests
-- **Security Headers**: Automatic security header injection
-
-### Observability Patterns
-- **Centralized Logging**: All requests logged at gateway level
-- **Request Tracing**: Correlation IDs for distributed tracing
-- **Health Monitoring**: Gateway monitors downstream service health
-- **Metrics Collection**: Performance and usage metrics
-
-## 🔒 Security Considerations
-
-### Current Implementation (Development)
-- **Basic Authentication**: Simple username/password
-- **Hardcoded Users**: In-memory user store
-- **Plaintext Passwords**: ⚠️ NOT suitable for production
-- **Role-Based Authorization**: Policy-based access control
-
-### Production Recommendations
-- **JWT Authentication**: Token-based authentication
-- **OAuth2/OpenID Connect**: Industry standard protocols
-- **External Identity Provider**: Azure AD, Auth0, etc.
-- **Password Hashing**: bcrypt, Argon2, etc.
-- **HTTPS Everywhere**: TLS encryption
-- **Rate Limiting**: Prevent abuse
-- **API Keys**: Service-to-service authentication
-- **Secret Management**: Azure Key Vault, HashiCorp Vault
-
-## 🚀 Deployment
+### Prerequisites
+- .NET 8 SDK
+- Docker Desktop
+- SQL Server (or Docker container)
 
 ### Local Development
 ```bash
-# Start infrastructure only
-docker-compose up -d rabbitmq article-db reporting-db
+# Clone and setup
+git clone <repository>
+cd microservices-example
 
-# Run services locally for debugging
-cd src/ApiGateway && dotnet run
-cd src/ArticleService && dotnet run  
-cd src/ReportingService && dotnet run
+# Start infrastructure
+./run-local.sh
+
+# The services will be available at:
+# - API Gateway: http://localhost:5000
+# - AuthService: http://localhost:5001  
+# - ClubService: http://localhost:5002
+# - MemberService: http://localhost:5003
+# - CommunicationService: http://localhost:5004
+# - PaymentService: http://localhost:5005
+# - LocalizationService: http://localhost:5006
 ```
 
-### Production Docker
+### Authentication
+The system uses OAuth2 with JWT tokens. Default test users:
+- **admin@lisa.ai** / `admin123` - System administrator
+- **manager@club1.lisa.ai** / `manager123` - Club manager
+- **member@club1.lisa.ai** / `member123` - Club member
+
+## 📡 **API Examples**
+
+### Authentication
 ```bash
-# Build and run complete system
-docker-compose up --build
-
-# Scale services (if needed)
-docker-compose up --scale article-service=2 --scale reporting-service=2
+# Login and get JWT token
+curl -X POST http://localhost:5000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "admin@lisa.ai", "password": "admin123"}'
 ```
 
-## 📊 Monitoring & Observability
-
-### Gateway Endpoints
-- **Health**: http://localhost:5000/health
-- **Gateway Health**: http://localhost:5000/api/gateway/health
-- **Service Health**: 
-  - http://localhost:5000/article-service/health
-  - http://localhost:5000/reporting-service/health
-
-### Logging
+### Club Management
 ```bash
-# View gateway logs
-docker logs api-gateway
+# Get club information
+curl -X GET http://localhost:5000/api/clubs/my-club \
+  -H "Authorization: Bearer <your-jwt-token>"
 
-# View service logs  
-docker logs article-service
-docker logs reporting-service
-
-# Follow all logs
-docker-compose logs -f
+# Create new member
+curl -X POST http://localhost:5000/api/members \
+  -H "Authorization: Bearer <your-jwt-token>" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "new@member.com", "firstName": "John", "lastName": "Doe"}'
 ```
 
-### Request Flow Tracing
-The gateway automatically adds headers to track requests:
-- `X-Forwarded-For`: Client IP address
-- `X-Gateway-User`: Authenticated username
-- Correlation IDs for distributed tracing
+### Multi-Language Support
+```bash
+# Get translations for Dutch
+curl -X GET http://localhost:5000/api/localization/translations/nl-NL \
+  -H "Authorization: Bearer <your-jwt-token>"
+```
 
-## 🧩 Extension Points
+## 🏢 **Multi-Tenant Architecture**
 
-### Adding JWT Authentication
-1. Update `Program.cs` to add JWT authentication scheme
-2. Create JWT token endpoint in gateway
-3. Configure JWT validation middleware
-4. Update authorization policies
+### Club Isolation Strategies
+1. **Database per Club** - Complete isolation (high-security clubs)
+2. **Schema per Club** - Shared database with separate schemas  
+3. **Row-level Security** - Shared tables with tenant filtering
 
-### Adding Rate Limiting
-1. Install `AspNetCoreRateLimit` package
-2. Configure rate limiting policies in `appsettings.json`
-3. Add rate limiting middleware to gateway pipeline
+### Configuration Hierarchy
+```
+System Level
+├── Default language, currency, timezone
+├── Default VAT rates per country
+└── System-wide features
 
-### Adding API Versioning
-1. Configure YARP routes with version prefixes
-2. Route different API versions to different service instances
-3. Implement backward compatibility strategies
+Club Level  
+├── Override language, currency, timezone
+├── Custom VAT rates
+├── Club-specific features
+└── Member role definitions
 
-## 🤝 Contributing
+User Level
+└── Personal language preference
+```
 
-1. Fork the repository
-2. Create a feature branch
-3. Add comprehensive tests for authentication/authorization
-4. Update documentation
-5. Submit a pull request
+## 🔄 **Event-Driven Communication**
 
-## 📜 License
+### Key Events
+- **ClubCreated** - New club registration
+- **MemberJoined** - New member signup
+- **PaymentProcessed** - Billing events
+- **NotificationSent** - Communication tracking
+- **LocalizationUpdated** - Translation changes
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+### Event Flow Example
+```
+Member Registration Flow:
+1. MemberService → MemberCreated event
+2. CommunicationService → Send welcome email
+3. PaymentService → Setup billing profile
+4. LocalizationService → Apply club language settings
+```
 
-## 📞 Support
+## 📊 **Monitoring & Observability**
 
-For questions or issues:
-- Review the authentication examples above
-- Check Docker container logs
-- Test with different user roles using the provided credentials
-- Create an issue for bugs or feature requests 
+### Health Checks
+- Service health: `/health`
+- Database connectivity: `/health/db`
+- External dependencies: `/health/dependencies`
+
+### Metrics
+- Request/response times
+- Error rates per service
+- Database query performance
+- Cache hit/miss ratios
+- Queue processing rates
+
+### Distributed Tracing
+All requests are traced across services using OpenTelemetry with correlation IDs.
+
+## 🚀 **Deployment**
+
+### Production Deployment
+```bash
+# Build and deploy to Azure
+docker-compose -f docker-compose.production.yml up -d
+
+# Or use Azure Container Apps
+az containerapp up --source .
+```
+
+### Environment Configuration
+- **Development**: Local Docker containers
+- **Staging**: Azure Container Apps with shared resources
+- **Production**: Azure Container Apps with dedicated resources + multi-region
+
+## 🤝 **Contributing**
+
+### Development Workflow
+1. **AI-Assisted Development** - Use GitHub Copilot/Claude for code generation
+2. **Human Review** - All AI-generated code must be reviewed
+3. **Testing** - Unit, integration, and E2E tests required
+4. **Documentation** - Update Confluence and README files
+
+### Code Standards
+- **Clean Architecture** - Domain, Application, Infrastructure layers
+- **SOLID Principles** - Maintainable and testable code
+- **Functional Programming** - Immutable objects, pure functions
+- **Short-Circuit Evaluation** - Early returns, guard clauses
+
+## 📚 **Documentation**
+
+- **Architecture Decisions**: See `/docs/adr/` folder
+- **API Documentation**: Available at `/swagger` on each service
+- **Confluence**: Internal team documentation
+- **OpenAPI Specs**: Auto-generated from code
+
+## 🔒 **Security Considerations**
+
+### Production Security
+- Replace hardcoded users with proper OAuth provider
+- Enable rate limiting and DDoS protection
+- Implement proper RBAC with fine-grained permissions
+- Regular security audits and penetration testing
+- Secrets rotation and key management
+
+### GDPR Compliance
+- Data retention policies with automated cleanup
+- User data export and deletion endpoints
+- Audit trails for all data access
+- Privacy by design principles
+
+---
+
+**Apollo** - Empowering sports clubs with modern technology 🚀
+
+For support: [support@apollo-sports.com](mailto:support@apollo-sports.com) 

@@ -1,0 +1,13 @@
+2025-06-30 17:35:45.800 +05:00 [INF] Starting ClubService
+2025-06-30 17:35:45.826 +05:00 [INF] User profile is available. Using '/Users/faisalsideline/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2025-06-30 17:35:45.851 +05:00 [INF] Now listening on: http://localhost:8082
+2025-06-30 17:35:45.852 +05:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-06-30 17:35:45.852 +05:00 [INF] Hosting environment: Production
+2025-06-30 17:35:45.852 +05:00 [INF] Content root path: /Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/ClubService
+2025-06-30 17:38:40.019 +05:00 [INF] Application is shutting down...
+2025-06-30 17:39:20.260 +05:00 [INF] Starting ClubService
+2025-06-30 17:39:20.286 +05:00 [INF] User profile is available. Using '/Users/faisalsideline/.aspnet/DataProtection-Keys' as key repository; keys will not be encrypted at rest.
+2025-06-30 17:39:20.308 +05:00 [INF] Now listening on: http://localhost:8082
+2025-06-30 17:39:20.308 +05:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-06-30 17:39:20.308 +05:00 [INF] Hosting environment: Production
+2025-06-30 17:39:20.308 +05:00 [INF] Content root path: /Users/faisalsideline/Desktop/repos/sideline/microservices-example/src/ClubService
