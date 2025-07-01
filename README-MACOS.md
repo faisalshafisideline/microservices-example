@@ -1,6 +1,6 @@
-# 🍎 Running .NET 8 Microservices on macOS
+# 🍎 Running Apollo Sports Club Management Platform on macOS
 
-This guide explains how to set up and run the complete microservices solution on macOS.
+This guide explains how to set up and run the complete Apollo microservices solution on macOS.
 
 ## 🔧 Prerequisites
 
@@ -52,10 +52,10 @@ cd microservices-example
 
 This script will:
 - ✅ Check if Docker is running
-- ✅ Verify required ports are available
+- ✅ Verify required ports are available (8080-8084)
 - ✅ Start SQL Server, RabbitMQ, and Redis containers
-- ✅ Build the .NET solution
-- ✅ Launch all microservices in separate terminal windows
+- ✅ Build the Apollo .NET solution
+- ✅ Launch all Apollo microservices in separate terminal windows
 
 ### Option 2: Manual Setup
 
@@ -82,80 +82,142 @@ docker run -d --name redis \
     redis:alpine
 ```
 
-#### Step 2: Build the Solution
+#### Step 2: Build the Apollo Solution
 ```bash
 dotnet build
 ```
 
-#### Step 3: Start the Services
-Open 3 separate terminal windows and run:
+#### Step 3: Start the Apollo Services
+Open 5 separate terminal windows and run:
 
-**Terminal 1 - Article Service:**
+**Terminal 1 - Auth Service:**
 ```bash
-dotnet run --project src/ArticleService/ArticleService.csproj --urls http://localhost:8081
+dotnet run --project src/AuthService/AuthService.csproj --urls http://localhost:8081
 ```
 
-**Terminal 2 - Reporting Service:**
+**Terminal 2 - Club Service:**
 ```bash
-dotnet run --project src/ReportingService/ReportingService.csproj --urls http://localhost:8082
+dotnet run --project src/ClubService/ClubService.csproj --urls http://localhost:8082
 ```
 
-**Terminal 3 - API Gateway:**
+**Terminal 3 - Member Service:**
+```bash
+dotnet run --project src/MemberService/MemberService.csproj --urls http://localhost:8083
+```
+
+**Terminal 4 - Communication Service:**
+```bash
+dotnet run --project src/CommunicationService/CommunicationService.csproj --urls http://localhost:8084
+```
+
+**Terminal 5 - API Gateway:**
 ```bash
 dotnet run --project src/ApiGateway/ApiGateway.csproj --urls http://localhost:8080
 ```
 
-## 🌐 Service URLs
+## 🌐 Apollo Service URLs
 
 Once everything is running, you can access:
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| **API Gateway** | http://localhost:8080 | Main entry point |
-| **API Gateway Swagger** | http://localhost:8080/swagger | API documentation |
-| **Article Service** | http://localhost:8081 | Direct article service access |
-| **Reporting Service** | http://localhost:8082 | Direct reporting service access |
-| **RabbitMQ Management** | http://localhost:15672 | Message queue admin (admin/admin) |
+| **🌐 API Gateway** | http://localhost:8080 | Main entry point for Apollo |
+| **🌐 API Gateway Swagger** | http://localhost:8080/swagger | Unified API documentation |
+| **🔐 Auth Service** | http://localhost:8081 | Authentication & authorization |
+| **🔐 Auth Service Swagger** | http://localhost:8081/swagger | Auth API documentation |
+| **🏢 Club Service** | http://localhost:8082 | Club & tenant management |
+| **🏢 Club Service Swagger** | http://localhost:8082/swagger | Club API documentation |
+| **👥 Member Service** | http://localhost:8083 | Member profiles & management |
+| **👥 Member Service Swagger** | http://localhost:8083/swagger | Member API documentation |
+| **📧 Communication Service** | http://localhost:8084 | Notifications & messaging |
+| **📧 Communication Service Swagger** | http://localhost:8084/swagger | Communication API documentation |
+| **🐰 RabbitMQ Management** | http://localhost:15672 | Message queue admin (admin/admin) |
 
-### Database Connections
+### Infrastructure Connections
 - **SQL Server**: `localhost,1433` (sa/YourStrong@Passw0rd)
 - **Redis**: `localhost:6379`
 
-## 🧪 Testing the Solution
+## 🧪 Testing Apollo Platform
 
 ### 1. Test API Gateway Health
 ```bash
-curl http://localhost:8080/api/gateway/health
+curl http://localhost:8080/health
 ```
 
-### 2. Create an Article
+### 2. Register a New User
 ```bash
-curl -X POST http://localhost:8080/api/articles \
+curl -X POST http://localhost:8081/api/auth/register \
   -H "Content-Type: application/json" \
-  -H "Authorization: Basic YWRtaW46YWRtaW4=" \
   -d '{
-    "title": "Test Article",
-    "content": "This is a test article content.",
-    "authorId": "author-123",
-    "authorName": "John Doe",
-    "category": "Technology",
-    "tags": ["test", "demo"],
-    "summary": "A test article for demonstration"
+    "email": "john.doe@example.com",
+    "password": "SecurePass123!",
+    "firstName": "John",
+    "lastName": "Doe"
   }'
 ```
 
-### 3. Get Articles
+### 3. Login and Get JWT Token
 ```bash
-curl http://localhost:8080/api/articles
+curl -X POST http://localhost:8081/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@apollo-sports.com",
+    "password": "admin123"
+  }'
 ```
 
-### 4. View Article Reports
+### 4. Create a Sports Club
 ```bash
-curl http://localhost:8080/api/reporting/top-viewed \
-  -H "Authorization: Basic cmVwb3J0ZXI6cmVwb3J0ZXI="
+curl -X POST http://localhost:8082/api/clubs \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <your-jwt-token>" \
+  -d '{
+    "name": "Barcelona Football Club",
+    "code": "FC-BARCELONA",
+    "country": "Spain",
+    "primaryContactEmail": "admin@fcbarcelona.com",
+    "primaryContactName": "Joan Laporta",
+    "address": {
+      "street": "Carrer de Aristides Maillol",
+      "city": "Barcelona",
+      "state": "Catalonia",
+      "postalCode": "08028",
+      "country": "Spain"
+    }
+  }'
 ```
 
-## 🛑 Stopping the Solution
+### 5. Add a Club Member
+```bash
+curl -X POST http://localhost:8083/api/members \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <your-jwt-token>" \
+  -d '{
+    "clubId": "<club-id>",
+    "firstName": "Lionel",
+    "lastName": "Messi",
+    "email": "messi@fcbarcelona.com",
+    "membershipType": "Premium",
+    "sports": ["Football"],
+    "position": "Forward"
+  }'
+```
+
+### 6. Send Club Notification
+```bash
+curl -X POST http://localhost:8084/api/notifications \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <your-jwt-token>" \
+  -d '{
+    "clubId": "<club-id>",
+    "recipientIds": ["<member-id>"],
+    "type": "Email",
+    "subject": "Welcome to the Club!",
+    "content": "Welcome to our sports club family!"
+  }'
+```
+
+## 🛑 Stopping Apollo Platform
 
 ### Automated Stop
 ```bash
@@ -168,10 +230,12 @@ curl http://localhost:8080/api/reporting/top-viewed \
 docker stop sqlserver rabbitmq redis
 docker rm sqlserver rabbitmq redis
 
-# Stop .NET services (Ctrl+C in each terminal)
+# Stop Apollo services (Ctrl+C in each terminal)
 # Or kill processes
-pkill -f "dotnet.*ArticleService"
-pkill -f "dotnet.*ReportingService"
+pkill -f "dotnet.*AuthService"
+pkill -f "dotnet.*ClubService"
+pkill -f "dotnet.*MemberService"
+pkill -f "dotnet.*CommunicationService"
 pkill -f "dotnet.*ApiGateway"
 ```
 
@@ -199,74 +263,54 @@ docker info
 
 #### 3. SQL Server Connection Issues
 ```bash
-# Check if SQL Server container is running
-docker ps | grep sqlserver
-
-# Check container logs
-docker logs sqlserver
+# Test SQL Server connection
+docker exec -it sqlserver /opt/mssql-tools/bin/sqlcmd \
+    -S localhost -U sa -P 'YourStrong@Passw0rd' \
+    -Q "SELECT @@VERSION"
 ```
 
-#### 4. Build Errors
+#### 4. RabbitMQ Connection Issues
 ```bash
-# Clean and rebuild
-dotnet clean
-dotnet restore
-dotnet build
+# Check RabbitMQ status
+curl -u admin:admin http://localhost:15672/api/overview
 ```
 
-#### 5. Database Creation Issues
-The services automatically create databases on startup. If you encounter issues:
-```bash
-# Restart SQL Server container
-docker restart sqlserver
+#### 5. JWT Token Issues
+- Ensure you're using the correct admin credentials: `admin@apollo-sports.com` / `admin123`
+- Check token expiration (default: 1 hour)
+- Verify the `Authorization: Bearer <token>` header format
 
-# Wait 30 seconds, then restart the services
-```
+#### 6. Multi-Tenant Access Issues
+- Ensure the user has proper club roles assigned
+- Check that the club ID exists and is active
+- Verify subscription plan allows the operation
 
-### Authentication
+## 🏗️ Apollo Architecture
 
-The solution uses basic authentication with these test users:
+### Microservices Overview
+- **🔐 AuthService**: OAuth2 + JWT authentication with 2FA support
+- **🏢 ClubService**: Multi-tenant club management with subscription tiers
+- **👥 MemberService**: Comprehensive member profiles with sports features
+- **📧 CommunicationService**: Email/SMS/push notifications
+- **🌐 API Gateway**: Unified entry point with routing and authentication
 
-| Username | Password | Roles |
-|----------|----------|-------|
-| admin | admin | Admin |
-| author | author | Author |
-| reporter | reporter | Reporter |
-| user | user | User |
+### Key Features
+- ✅ **Multi-Tenancy**: Complete club data separation
+- ✅ **Sports-Specific**: Teams, positions, skill levels, medical records
+- ✅ **Subscription Management**: Free to Enterprise tiers
+- ✅ **Communication**: Multi-channel notifications
+- ✅ **Security**: JWT tokens, 2FA, role-based access
+- ✅ **Scalability**: Event-driven architecture with MassTransit
 
-## 🏗️ Architecture Overview
+## 📚 Additional Resources
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   API Gateway   │    │ Article Service │    │Reporting Service│
-│   (Port 8080)   │◄──►│   (Port 8081)   │◄──►│   (Port 8082)   │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         └───────────────────────┼───────────────────────┘
-                                 │
-         ┌─────────────────┬─────┴─────┬─────────────────┐
-         │                 │           │                 │
-    ┌────▼────┐       ┌────▼────┐ ┌────▼────┐       ┌────▼────┐
-    │SQL Server│       │RabbitMQ │ │  Redis  │       │ gRPC    │
-    │Port 1433│       │Port 5672│ │Port 6379│       │Inter-svc│
-    └─────────┘       └─────────┘ └─────────┘       └─────────┘
-```
+- [User Context Guide](USER-CONTEXT-GUIDE.md)
+- [API Gateway Guide](API-GATEWAY-GUIDE.md)
+- [Improvement Plan](IMPROVEMENT-PLAN.md)
+- [Scalability Guide](SCALABILITY-ROBUSTNESS-IMPROVEMENTS.md)
 
-## 📝 Next Steps
+---
 
-1. **Enable Scalability Services**: Uncomment the scalability services in Program.cs files
-2. **Configure Production Settings**: Update connection strings for production
-3. **Add Monitoring**: Integrate with Application Insights or similar
-4. **Security**: Implement proper JWT authentication
-5. **Load Testing**: Use tools like k6 or Artillery for performance testing
+**Apollo** - Empowering sports clubs with modern technology 🚀
 
-## 🆘 Getting Help
-
-If you encounter issues:
-1. Check the terminal output for error messages
-2. Verify all Docker containers are running: `docker ps`
-3. Check service logs in the terminal windows
-4. Ensure all required ports are available
-5. Try restarting the infrastructure services
-
-Happy coding! 🚀 
+For support: [support@apollo-sports.com](mailto:support@apollo-sports.com) 

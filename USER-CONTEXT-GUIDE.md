@@ -1,14 +1,15 @@
-# User Context Propagation Guide
+# Apollo User Context Propagation Guide
 
-This guide explains how to implement and use the **User Context Propagation** system across your .NET microservices architecture.
+This guide explains how to implement and use the **User Context Propagation** system across Apollo's multi-tenant sports club management microservices.
 
 ## 🎯 Overview
 
-The User Context system provides a robust mechanism to capture, propagate, and consume user information (user ID, roles, correlation ID, etc.) across:
+The User Context system provides a robust mechanism to capture, propagate, and consume user information (user ID, club roles, correlation ID, etc.) across Apollo's microservices:
 
 - **HTTP requests** (via YARP API Gateway)
 - **gRPC calls** between services
 - **RabbitMQ messages** for async communication
+- **Multi-tenant club data** separation
 
 ## 📦 Core Components
 
@@ -21,7 +22,7 @@ public class UserContext
     public string? Username { get; init; }
     public IReadOnlyList<string> Roles { get; init; }
     public string CorrelationId { get; init; }
-    public string? TenantId { get; init; }
+    public string? ClubId { get; init; }        // Apollo: Current club context
     public IReadOnlyDictionary<string, string> Claims { get; init; }
     public DateTimeOffset Timestamp { get; init; }
 }
@@ -40,19 +41,19 @@ public interface IUserContextAccessor
 }
 ```
 
-## 🚀 Quick Start
+## 🚀 Quick Start for Apollo Services
 
-### 1. Add User Context to Services
+### 1. Add User Context to Apollo Services
 
-In each service's `Program.cs`:
+In each Apollo service's `Program.cs`:
 
 ```csharp
 using Shared.Contracts.UserContext.Extensions;
 
-// Add user context services
+// Add user context services for Apollo
 builder.Services.AddUserContext();
 
-// For services with gRPC
+// For services with gRPC (AuthService, ClubService, MemberService)
 builder.Services.AddUserContextGrpcInterceptors();
 ```
 
@@ -65,7 +66,7 @@ app.UseUserContext();
 
 ### 3. Configure gRPC Services
 
-**For gRPC Server:**
+**For gRPC Server (AuthService, ClubService, MemberService):**
 ```csharp
 builder.Services.AddGrpc(options =>
 {
@@ -75,307 +76,356 @@ builder.Services.AddGrpc(options =>
 
 **For gRPC Client:**
 ```csharp
-builder.Services.AddGrpcClient<ArticleService.ArticleServiceClient>(options =>
+// Example: MemberService calling AuthService
+builder.Services.AddGrpcClient<AuthService.AuthServiceClient>(options =>
 {
-    options.Address = new Uri("https://localhost:7001");
+    options.Address = new Uri("https://localhost:8081");
 })
 .AddInterceptor<UserContextClientInterceptor>();
 ```
 
-### 4. Configure MassTransit (RabbitMQ)
+### 4. Configure MassTransit for Apollo Events
 
 ```csharp
 builder.Services.AddMassTransit(x =>
 {
-    x.ConfigureUserContextPropagation(); // Add filters
+    x.ConfigureUserContextPropagation(); // Add Apollo context filters
     
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host("localhost", "/", h => {
-            h.Username("guest");
-            h.Password("guest");
+            h.Username("admin");
+            h.Password("admin");
         });
         
-        cfg.ConfigureUserContextPropagation(context); // Add to bus
+        cfg.ConfigureUserContextPropagation(context);
         cfg.ConfigureEndpoints(context);
     });
 });
 ```
 
-## 📋 Implementation Examples
+## 📋 Apollo Implementation Examples
 
-### 1. API Gateway Setup
+### 1. API Gateway Setup for Apollo
 
-The API Gateway automatically extracts user context from authentication and adds headers:
+The API Gateway automatically extracts user context from JWT tokens and adds club context:
 
 ```csharp
 // In ApiGateway/Program.cs
 builder.Services.AddUserContext();
 
-// Add middleware after authentication
+// Add middleware after JWT authentication
 app.UseAuthentication();
 app.UseMiddleware<UserContextEnrichmentMiddleware>();
 app.UseAuthorization();
 ```
 
-### 2. Using Context in Business Logic
+### 2. Multi-Tenant Club Context in Business Logic
 
 ```csharp
-public class ArticleService
+public class ClubService
 {
     private readonly IUserContextAccessor _userContextAccessor;
 
-    public ArticleService(IUserContextAccessor userContextAccessor)
+    public ClubService(IUserContextAccessor userContextAccessor)
     {
         _userContextAccessor = userContextAccessor;
     }
 
-    public async Task<Article> CreateArticleAsync(CreateArticleRequest request)
+    public async Task<Club> CreateClubAsync(CreateClubRequest request)
     {
         var userContext = _userContextAccessor.GetRequiredContext();
         
-        // Use context for business logic
-        var article = new Article
-        {
-            Title = request.Title,
-            Content = request.Content,
-            AuthorId = userContext.UserId,
-            CreatedBy = userContext.Username,
-            CorrelationId = userContext.CorrelationId
-        };
+        // Apollo: Use context for multi-tenant operations
+        var club = new Club(
+            name: request.Name,
+            code: request.Code,
+            country: request.Country,
+            primaryContactEmail: request.PrimaryContactEmail,
+            primaryContactName: request.PrimaryContactName,
+            address: request.Address,
+            createdBy: userContext.UserId // Audit trail
+        );
 
         // Context is automatically propagated to:
-        // - Database operations (via interceptors)
-        // - gRPC calls (via client interceptor)
-        // - Published events (via MassTransit filters)
+        // - Database operations (with club isolation)
+        // - gRPC calls to other Apollo services
+        // - Published events (ClubCreatedEvent)
         
-        return article;
+        return club;
     }
 }
 ```
 
-### 3. gRPC Service Implementation
+### 3. Member Service with Club Context
 
 ```csharp
-public class ArticleGrpcService : ArticleService.ArticleServiceBase
+public class MemberService
 {
     private readonly IUserContextAccessor _userContextAccessor;
 
-    public override async Task<GetArticleResponse> GetArticle(
-        GetArticleRequest request, 
+    public async Task<Member> AddMemberAsync(AddMemberRequest request)
+    {
+        var userContext = _userContextAccessor.GetRequiredContext();
+        
+        // Apollo: Ensure user has access to the club
+        if (userContext.ClubId != request.ClubId)
+        {
+            throw new UnauthorizedAccessException("User not authorized for this club");
+        }
+
+        var member = new Member(
+            clubId: Guid.Parse(request.ClubId),
+            userId: Guid.Parse(request.UserId),
+            memberNumber: request.MemberNumber,
+            firstName: request.FirstName,
+            lastName: request.LastName,
+            email: request.Email,
+            membershipType: request.MembershipType,
+            membershipFee: request.MembershipFee,
+            currency: request.Currency,
+            createdBy: userContext.UserId
+        );
+
+        return member;
+    }
+}
+```
+
+### 4. Apollo gRPC Service Implementation
+
+```csharp
+public class AuthGrpcService : AuthService.AuthServiceBase
+{
+    private readonly IUserContextAccessor _userContextAccessor;
+
+    public override async Task<ValidateTokenResponse> ValidateToken(
+        ValidateTokenRequest request, 
         ServerCallContext context)
     {
         // Context is automatically extracted by UserContextServerInterceptor
         var userContext = _userContextAccessor.Current;
         
-        _logger.LogInformation("Processing gRPC request for user: {UserId}, Correlation: {CorrelationId}",
-            userContext?.UserId, userContext?.CorrelationId);
+        _logger.LogInformation("Validating token for user: {UserId}, Club: {ClubId}, Correlation: {CorrelationId}",
+            userContext?.UserId, userContext?.ClubId, userContext?.CorrelationId);
 
-        // Business logic here...
+        // Apollo: Validate JWT and return user with club roles
+        var user = await _authService.ValidateTokenAsync(request.Token);
+        
+        return new ValidateTokenResponse
+        {
+            IsValid = user != null,
+            User = MapToGrpcUser(user),
+            Permissions = { user?.GetClubPermissions(userContext?.ClubId) ?? [] }
+        };
     }
 }
 ```
 
-### 4. RabbitMQ Consumer
+### 5. Apollo Event Consumer with Club Context
 
 ```csharp
-public class ArticleCreatedEventConsumer : IConsumer<ArticleCreatedEvent>
+public class MemberJoinedEventConsumer : IConsumer<MemberJoinedEvent>
 {
     private readonly IUserContextAccessor _userContextAccessor;
+    private readonly ICommunicationService _communicationService;
 
-    public async Task Consume(ConsumeContext<ArticleCreatedEvent> context)
+    public async Task Consume(ConsumeContext<MemberJoinedEvent> context)
     {
         // Context is automatically extracted by UserContextConsumeFilter
         var userContext = _userContextAccessor.Current;
         
-        _logger.LogInformation("Processing event for user: {UserId}, Correlation: {CorrelationId}",
-            userContext?.UserId, userContext?.CorrelationId);
+        _logger.LogInformation("Processing member joined event for Club: {ClubId}, Member: {MemberId}, Correlation: {CorrelationId}",
+            context.Message.ClubId, context.Message.MemberId, userContext?.CorrelationId);
 
-        // Process the event...
+        // Apollo: Send welcome notification to new member
+        await _communicationService.SendWelcomeNotificationAsync(
+            clubId: context.Message.ClubId,
+            memberId: context.Message.MemberId,
+            memberEmail: context.Message.MemberEmail
+        );
     }
 }
 ```
 
-### 5. Publishing Events with Context
+### 6. Publishing Apollo Events with Context
 
 ```csharp
-public class ArticleCommandHandler
+public class ClubService
 {
     private readonly IPublishEndpoint _publishEndpoint;
+
+    public async Task CreateClubAsync(CreateClubRequest request)
+    {
+        // Create club logic...
+        
+        // Apollo: Publish club created event with full context
+        await _publishEndpoint.Publish(new ClubCreatedEvent
+        {
+            ClubId = club.Id,
+            ClubName = club.Name,
+            ClubCode = club.Code,
+            CreatedBy = club.CreatedBy,
+            CreatedAt = club.CreatedAt
+        });
+        // User context is automatically added by UserContextPublishFilter
+    }
+}
+```
+
+## 🏢 Apollo Multi-Tenant Scenarios
+
+### 1. Club Data Isolation
+
+```csharp
+public class MemberRepository
+{
     private readonly IUserContextAccessor _userContextAccessor;
 
-    public async Task Handle(CreateArticleCommand command)
+    public async Task<List<Member>> GetMembersAsync()
     {
-        // Create article...
+        var userContext = _userContextAccessor.GetRequiredContext();
         
-        // Publish event - context is automatically injected by UserContextPublishFilter
-        await _publishEndpoint.Publish(new ArticleCreatedEvent
-        {
-            ArticleId = article.Id,
-            Title = article.Title,
-            AuthorId = article.AuthorId
-        });
+        // Apollo: Always filter by club context for data isolation
+        return await _dbContext.Members
+            .Where(m => m.ClubId == Guid.Parse(userContext.ClubId))
+            .ToListAsync();
     }
 }
 ```
 
-## 🔧 Configuration Details
-
-### HTTP Headers
-
-The system uses these headers for HTTP propagation:
-
-```
-X-User-Id: user123
-X-Username: john.doe
-X-User-Roles: Admin,Author
-X-Correlation-Id: 12345678-1234-1234-1234-123456789012
-X-Tenant-Id: tenant1
-X-User-Claims: claim1=value1;claim2=value2
-X-User-Context-Timestamp: 2024-01-01T12:00:00.000Z
-```
-
-### gRPC Metadata
-
-For gRPC, the same information is transmitted via metadata with lowercase keys:
-
-```
-x-user-id: user123
-x-username: john.doe
-x-user-roles: Admin,Author
-x-correlation-id: 12345678-1234-1234-1234-123456789012
-```
-
-### RabbitMQ Headers
-
-For RabbitMQ messages, context is stored in message headers:
-
-```
-user-id: user123
-username: john.doe
-user-roles: Admin,Author
-correlation-id: 12345678-1234-1234-1234-123456789012
-```
-
-## 🧪 Testing Context Propagation
-
-### 1. Test HTTP to gRPC Propagation
-
-```bash
-# Call API Gateway with authentication
-curl -X GET "http://localhost:5000/api/articles/123" \
-  -H "Authorization: Basic YWRtaW46c3VwZXJzZWNyZXQ=" \
-  -H "X-Correlation-Id: test-correlation-123"
-```
-
-### 2. Verify Context in Logs
-
-Look for log entries showing context propagation:
-
-```
-[INFO] User context enriched for gateway request: User: admin (admin), Roles: [Admin, Reporter, User], CorrelationId: test-correlation-123
-[INFO] Injected user context into gRPC call: test-correlation-123
-[INFO] Extracted user context from gRPC call: User: admin (admin), Roles: [Admin, Reporter, User], CorrelationId: test-correlation-123
-```
-
-## 🎛️ Advanced Configuration
-
-### Custom Context Enrichment
-
-Create custom middleware to add tenant-specific information:
+### 2. Club Role-Based Authorization
 
 ```csharp
-public class TenantContextMiddleware
+public class ClubAuthorizationService
 {
-    public async Task InvokeAsync(HttpContext context, IUserContextAccessor userContextAccessor)
+    private readonly IUserContextAccessor _userContextAccessor;
+
+    public async Task<bool> CanManageMembersAsync()
     {
-        var currentContext = userContextAccessor.Current;
-        if (currentContext != null)
+        var userContext = _userContextAccessor.GetRequiredContext();
+        
+        // Apollo: Check if user has manager role in current club
+        return userContext.Roles.Contains($"Club:{userContext.ClubId}:Manager") ||
+               userContext.Roles.Contains($"Club:{userContext.ClubId}:Admin");
+    }
+}
+```
+
+### 3. Cross-Service Club Validation
+
+```csharp
+public class MemberService
+{
+    private readonly AuthService.AuthServiceClient _authClient;
+
+    public async Task AddMemberAsync(AddMemberRequest request)
+    {
+        // Apollo: Validate user has access to the club via AuthService
+        var validation = await _authClient.ValidateClubAccessAsync(new ValidateClubAccessRequest
         {
-            // Extract tenant from subdomain or header
-            var tenantId = ExtractTenantId(context);
-            
-            var enrichedContext = currentContext with { TenantId = tenantId };
-            userContextAccessor.SetContext(enrichedContext);
+            ClubId = request.ClubId,
+            UserId = _userContextAccessor.Current.UserId
+        });
+
+        if (!validation.HasAccess)
+        {
+            throw new UnauthorizedAccessException("User not authorized for this club");
         }
 
-        await _next(context);
+        // Proceed with adding member...
     }
 }
 ```
 
-### Custom Claims Processing
+## 🔍 Debugging Apollo User Context
+
+### 1. Logging Context Information
 
 ```csharp
-public class CustomUserContextMiddleware : UserContextMiddleware
+public class ApolloContextLoggingMiddleware
 {
-    protected override UserContext ExtractUserContext(HttpContext context)
+    public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
-        var baseContext = base.ExtractUserContext(context);
+        var userContext = _userContextAccessor.Current;
         
-        // Add custom claims processing
-        var customClaims = new Dictionary<string, string>(baseContext.Claims)
+        using var scope = _logger.BeginScope(new Dictionary<string, object>
         {
-            ["department"] = context.User.FindFirst("department")?.Value ?? "unknown",
-            ["location"] = context.User.FindFirst("location")?.Value ?? "remote"
+            ["UserId"] = userContext?.UserId ?? "Anonymous",
+            ["ClubId"] = userContext?.ClubId ?? "None",
+            ["CorrelationId"] = userContext?.CorrelationId ?? Guid.NewGuid().ToString()
+        });
+
+        await next(context);
+    }
+}
+```
+
+### 2. Health Check with Context
+
+```csharp
+public class ApolloContextHealthCheck : IHealthCheck
+{
+    private readonly IUserContextAccessor _userContextAccessor;
+
+    public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+    {
+        var userContext = _userContextAccessor.Current;
+        
+        var data = new Dictionary<string, object>
+        {
+            ["HasUserContext"] = userContext != null,
+            ["UserId"] = userContext?.UserId ?? "None",
+            ["ClubId"] = userContext?.ClubId ?? "None"
         };
 
-        return baseContext.WithClaims(customClaims);
+        return Task.FromResult(HealthCheckResult.Healthy("Apollo User Context is working", data));
     }
 }
 ```
 
-## 🔍 Troubleshooting
+## 🎯 Apollo Best Practices
 
-### Common Issues
-
-1. **Context is null in business logic**
-   - Ensure middleware is registered after authentication
-   - Verify UserContext services are registered in DI
-
-2. **gRPC context not propagating**
-   - Check that both client and server interceptors are registered
-   - Verify interceptor order in gRPC configuration
-
-3. **RabbitMQ context missing**
-   - Ensure MassTransit filters are configured
-   - Check that both publish and consume filters are added
-
-### Debug Logging
-
-Enable debug logging to trace context flow:
-
-```json
+### 1. Always Validate Club Access
+```csharp
+// Always check club access in service operations
+var userContext = _userContextAccessor.GetRequiredContext();
+if (string.IsNullOrEmpty(userContext.ClubId))
 {
-  "Logging": {
-    "LogLevel": {
-      "Shared.Contracts.UserContext": "Debug"
-    }
-  }
+    throw new InvalidOperationException("Club context is required");
 }
 ```
 
-## 📚 Best Practices
+### 2. Use Club-Scoped Queries
+```csharp
+// Always include club filtering in database queries
+var members = await _dbContext.Members
+    .Where(m => m.ClubId == Guid.Parse(userContext.ClubId))
+    .ToListAsync();
+```
 
-1. **Always use GetCurrentOrEmpty()** for optional context
-2. **Use GetRequiredContext()** when context is mandatory
-3. **Set context early** in the request pipeline
-4. **Clear context** in finally blocks for long-running operations
-5. **Log correlation IDs** for distributed tracing
-6. **Validate sensitive operations** using context roles/claims
+### 3. Include Context in Events
+```csharp
+// Apollo events should include club context
+public class MemberJoinedEvent
+{
+    public Guid ClubId { get; set; }      // Required for multi-tenancy
+    public Guid MemberId { get; set; }
+    public string MemberEmail { get; set; }
+    public DateTime JoinedAt { get; set; }
+}
+```
 
-## 🔐 Security Considerations
+## 🔒 Security Considerations for Apollo
 
-- Context headers are automatically added by the gateway
-- Don't trust context headers from external clients
-- Validate permissions using context in business logic
-- Consider encrypting sensitive context data
-- Audit context usage for compliance
+1. **Club Isolation**: Always validate club access before operations
+2. **Role Validation**: Check club-specific roles for authorization
+3. **Data Filtering**: Never expose data across club boundaries
+4. **Audit Trails**: Include user and club context in all operations
+5. **Token Validation**: Ensure JWT tokens contain valid club claims
 
-## 📖 Next Steps
+---
 
-1. Implement custom context enrichment for your domain
-2. Add distributed tracing using correlation IDs
-3. Implement audit logging using user context
-4. Create authorization policies based on context
-5. Add monitoring and alerting for context failures 
+**Apollo** - Empowering sports clubs with secure, multi-tenant technology 🚀
+
+For support: [support@apollo-sports.com](mailto:support@apollo-sports.com) 
