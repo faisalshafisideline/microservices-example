@@ -1,202 +1,504 @@
-# 🚀 Scalability & Robustness Improvements Guide
+# 🚀 Apollo Sports Club Management - Scalability & Robustness Guide
 
-This document outlines comprehensive improvements to enhance the scalability, robustness, and production-readiness of your .NET microservices architecture.
+This document outlines comprehensive improvements to enhance the scalability, robustness, and production-readiness of Apollo's multi-tenant sports club management microservices architecture.
 
-## 🏗️ **Architecture Improvements**
+## 🏗️ **Apollo Architecture Improvements**
 
-### 1. **Service Mesh Implementation**
-- **Technology**: Istio or Linkerd
+### 1. **Multi-Tenant Service Mesh**
+- **Technology**: Istio or Linkerd with club-based routing
 - **Benefits**: 
-  - Automatic mTLS between services
-  - Traffic management and load balancing
-  - Circuit breaking and fault injection
-  - Observability without code changes
-- **Implementation**: Deploy as sidecar proxies
+  - Automatic mTLS between Apollo services
+  - Club-specific traffic management and load balancing
+  - Circuit breaking for sports operations
+  - Multi-tenant observability without code changes
+- **Implementation**: Deploy as sidecar proxies with club context
 
-### 2. **Event Sourcing & CQRS Enhancement**
-- **Event Store**: Persistent event storage with snapshots
-- **Aggregate Root**: Base class for domain entities
+```yaml
+# Apollo Club-based Traffic Routing
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: apollo-member-service
+spec:
+  hosts:
+  - member-service
+  http:
+  - match:
+    - headers:
+        x-club-id:
+          exact: "premium-club-id"
+    route:
+    - destination:
+        host: member-service
+        subset: premium
+  - route:
+    - destination:
+        host: member-service
+        subset: standard
+```
+
+### 2. **Sports Event Sourcing & CQRS**
+- **Event Store**: Persistent sports event storage with snapshots
+- **Aggregate Root**: Base class for sports domain entities
 - **Benefits**:
-  - Complete audit trail
-  - Temporal queries
-  - Better scalability through read/write separation
-  - Replay capabilities for debugging
+  - Complete audit trail for club operations
+  - Temporal queries for member history
+  - Better scalability through sports data separation
+  - Replay capabilities for club data recovery
 
-### 3. **Distributed Caching Layer**
-- **Technology**: Redis Cluster
-- **Features**:
-  - Multi-level caching strategy
-  - Cache-aside and write-through patterns
-  - Consistent cache key generation
-  - Cache invalidation strategies
-
-## 🔧 **Resilience Patterns**
-
-### 1. **Circuit Breaker Pattern**
 ```csharp
-await _resilienceService.ExecuteAsync(
-    "article-service-get",
-    async () => await _articleClient.GetArticleAsync(id),
-    fallback: async () => await _cacheService.GetArticleAsync(id)
-);
-```
-
-### 2. **Retry with Exponential Backoff**
-- Configurable retry policies
-- Jitter to prevent thundering herd
-- Different policies per operation type
-
-### 3. **Bulkhead Isolation**
-- Resource isolation between operations
-- Separate thread pools for different services
-- Queue management for high-load scenarios
-
-### 4. **Timeout Management**
-- Per-operation timeout configuration
-- Cascading timeout prevention
-- Graceful degradation
-
-## 📊 **Observability Stack**
-
-### 1. **Metrics Collection**
-- **Prometheus**: Time-series metrics
-- **Grafana**: Visualization dashboards
-- **Custom Metrics**: Business and technical KPIs
-
-### 2. **Distributed Tracing**
-- **Jaeger**: Request flow tracking
-- **OpenTelemetry**: Standardized instrumentation
-- **Correlation ID**: End-to-end request tracking
-
-### 3. **Centralized Logging**
-- **ELK Stack**: Elasticsearch, Logstash, Kibana
-- **Structured Logging**: JSON format with correlation IDs
-- **Log Aggregation**: Centralized log analysis
-
-### 4. **Health Monitoring**
-```csharp
-services.AddHealthChecks()
-    .AddCheck<DatabaseHealthCheck>("database")
-    .AddCheck<MessageQueueHealthCheck>("rabbitmq")
-    .AddCheck<CacheHealthCheck>("redis")
-    .AddCheck<ExternalServiceHealthCheck>("article-service");
-```
-
-## 🔐 **Security Enhancements**
-
-### 1. **Advanced Authentication & Authorization**
-- **JWT with Refresh Tokens**: Secure token management
-- **Permission-based Authorization**: Fine-grained access control
-- **Multi-factor Authentication**: Enhanced security
-
-### 2. **Data Protection**
-- **Encryption at Rest**: Database and file encryption
-- **Encryption in Transit**: TLS 1.3 everywhere
-- **Data Classification**: Sensitivity-based handling
-- **Data Masking**: PII protection in logs
-
-### 3. **Threat Detection**
-- **Rate Limiting**: API protection
-- **Anomaly Detection**: Suspicious activity monitoring
-- **Audit Logging**: Comprehensive security events
-- **Automated Blocking**: Threat response
-
-### 4. **Security Scanning**
-- **Container Scanning**: Vulnerability detection
-- **Dependency Scanning**: Known vulnerability checks
-- **SAST/DAST**: Static and dynamic analysis
-
-## 🚀 **Performance Optimizations**
-
-### 1. **Database Optimizations**
-```sql
--- Read Replicas
-CREATE AVAILABILITY GROUP ArticleServiceAG
-WITH (CLUSTER_TYPE = NONE)
-FOR DATABASE ArticleServiceDb
-REPLICA ON 'primary-server', 'read-replica-1', 'read-replica-2';
-
--- Indexing Strategy
-CREATE INDEX IX_Articles_AuthorId_CreatedAt 
-ON Articles (AuthorId, CreatedAt DESC)
-INCLUDE (Title, Content);
-
--- Partitioning
-CREATE PARTITION FUNCTION pf_ArticlesByMonth (datetime2)
-AS RANGE RIGHT FOR VALUES ('2024-01-01', '2024-02-01', '2024-03-01');
-```
-
-### 2. **Caching Strategy**
-```csharp
-// Multi-level caching
-public async Task<Article> GetArticleAsync(Guid id)
+// Apollo Member Aggregate with Sports Events
+public class MemberAggregate : AggregateRoot
 {
-    // L1: In-memory cache
-    var article = _memoryCache.Get<Article>($"article:{id}");
-    if (article != null) return article;
-    
-    // L2: Distributed cache
-    article = await _distributedCache.GetAsync<Article>($"article:{id}");
-    if (article != null)
+    public void JoinClub(Guid clubId, string sport, MembershipType type)
     {
-        _memoryCache.Set($"article:{id}", article, TimeSpan.FromMinutes(5));
-        return article;
+        var @event = new MemberJoinedClubEvent(Id, clubId, sport, type, DateTime.UtcNow);
+        ApplyEvent(@event);
     }
     
-    // L3: Database
-    article = await _repository.GetByIdAsync(id);
-    if (article != null)
+    public void UpdateSportsInformation(List<string> sports, string position)
     {
-        await _distributedCache.SetAsync($"article:{id}", article, TimeSpan.FromHours(1));
-        _memoryCache.Set($"article:{id}", article, TimeSpan.FromMinutes(5));
+        var @event = new MemberSportsUpdatedEvent(Id, sports, position, DateTime.UtcNow);
+        ApplyEvent(@event);
     }
     
-    return article;
+    public void ProcessMembershipPayment(decimal amount, string currency)
+    {
+        var @event = new MembershipPaymentProcessedEvent(Id, amount, currency, DateTime.UtcNow);
+        ApplyEvent(@event);
+    }
 }
 ```
 
-### 3. **Connection Pooling**
+### 3. **Club-Scoped Distributed Caching**
+- **Technology**: Redis Cluster with club partitioning
+- **Features**:
+  - Multi-level caching strategy per club
+  - Sports-specific cache patterns
+  - Club-aware cache invalidation
+  - Member data caching with privacy controls
+
 ```csharp
-// gRPC Connection Management
-services.AddGrpcClient<ArticleService.ArticleServiceClient>(options =>
+// Apollo Club-Scoped Caching Service
+public class ApolloClubCacheService
 {
-    options.Address = new Uri("https://article-service:443");
+    public async Task<List<Member>> GetClubMembersAsync(Guid clubId)
+    {
+        var cacheKey = $"club:{clubId}:members";
+        var cached = await _distributedCache.GetAsync<List<Member>>(cacheKey);
+        
+        if (cached != null) return cached;
+        
+        var members = await _memberRepository.GetByClubIdAsync(clubId);
+        await _distributedCache.SetAsync(cacheKey, members, TimeSpan.FromMinutes(5));
+        
+        return members;
+    }
+    
+    public async Task InvalidateClubCacheAsync(Guid clubId)
+    {
+        var pattern = $"club:{clubId}:*";
+        await _distributedCache.RemoveByPatternAsync(pattern);
+    }
+}
+```
+
+## 🔧 **Apollo Resilience Patterns**
+
+### 1. **Sports Operation Circuit Breaker**
+```csharp
+// Apollo-specific circuit breaker for sports operations
+await _apolloResilienceService.ExecuteAsync(
+    "member-registration",
+    async () => await _memberService.RegisterMemberAsync(request),
+    fallback: async () => await _queueService.QueueMemberRegistrationAsync(request)
+);
+
+await _apolloResilienceService.ExecuteAsync(
+    "club-notification",
+    async () => await _communicationService.SendClubNotificationAsync(notification),
+    fallback: async () => await _notificationQueue.EnqueueAsync(notification)
+);
+```
+
+### 2. **Club-Aware Retry Policies**
+```csharp
+// Different retry policies for different club tiers
+public class ApolloRetryPolicyFactory
+{
+    public IAsyncPolicy CreateRetryPolicy(SubscriptionTier tier)
+    {
+        return tier switch
+        {
+            SubscriptionTier.Enterprise => Policy
+                .Handle<HttpRequestException>()
+                .WaitAndRetryAsync(5, retryAttempt => 
+                    TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))),
+                    
+            SubscriptionTier.Professional => Policy
+                .Handle<HttpRequestException>()
+                .WaitAndRetryAsync(3, retryAttempt => 
+                    TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))),
+                    
+            _ => Policy
+                .Handle<HttpRequestException>()
+                .WaitAndRetryAsync(1, _ => TimeSpan.FromSeconds(1))
+        };
+    }
+}
+```
+
+### 3. **Sports Resource Bulkhead Isolation**
+```csharp
+// Separate resource pools for different sports operations
+public class ApolloResourceManager
+{
+    private readonly SemaphoreSlim _memberOperations = new(100); // 100 concurrent member ops
+    private readonly SemaphoreSlim _communicationOperations = new(50); // 50 concurrent notifications
+    private readonly SemaphoreSlim _reportingOperations = new(20); // 20 concurrent reports
+    
+    public async Task<T> ExecuteMemberOperationAsync<T>(Func<Task<T>> operation)
+    {
+        await _memberOperations.WaitAsync();
+        try
+        {
+            return await operation();
+        }
+        finally
+        {
+            _memberOperations.Release();
+        }
+    }
+}
+```
+
+## 📊 **Apollo Observability Stack**
+
+### 1. **Sports Club Metrics Collection**
+```csharp
+// Apollo-specific metrics
+public class ApolloMetricsCollector
+{
+    private readonly IMetricsLogger _metrics;
+    
+    public void RecordMemberRegistration(Guid clubId, string sport, MembershipType type)
+    {
+        _metrics.Increment("apollo.members.registered", new[]
+        {
+            $"club:{clubId}",
+            $"sport:{sport}",
+            $"type:{type}"
+        });
+    }
+    
+    public void RecordClubActivity(Guid clubId, string activity, TimeSpan duration)
+    {
+        _metrics.Histogram("apollo.club.activity.duration", duration.TotalMilliseconds, new[]
+        {
+            $"club:{clubId}",
+            $"activity:{activity}"
+        });
+    }
+    
+    public void RecordSubscriptionMetrics(SubscriptionTier tier, int memberCount)
+    {
+        _metrics.Gauge("apollo.subscription.members", memberCount, new[]
+        {
+            $"tier:{tier}"
+        });
+    }
+}
+```
+
+### 2. **Club-Aware Distributed Tracing**
+```csharp
+// Apollo tracing with club context
+public class ApolloTracing
+{
+    public static ActivitySource ActivitySource = new("Apollo.SportsClub");
+    
+    public static Activity? StartActivity(string name, Guid? clubId = null, string? sport = null)
+    {
+        var activity = ActivitySource.StartActivity(name);
+        if (clubId.HasValue)
+            activity?.SetTag("apollo.club.id", clubId.ToString());
+        if (!string.IsNullOrEmpty(sport))
+            activity?.SetTag("apollo.sport", sport);
+        return activity;
+    }
+}
+
+// Usage in member service
+using var activity = ApolloTracing.StartActivity("member.register", request.ClubId, request.Sport);
+```
+
+### 3. **Apollo Health Monitoring**
+```csharp
+services.AddHealthChecks()
+    .AddCheck<ApolloAuthServiceHealthCheck>("apollo-auth")
+    .AddCheck<ApolloClubServiceHealthCheck>("apollo-clubs")
+    .AddCheck<ApolloMemberServiceHealthCheck>("apollo-members")
+    .AddCheck<ApolloCommunicationHealthCheck>("apollo-communication")
+    .AddCheck<ApolloMultiTenantDatabaseHealthCheck>("apollo-database")
+    .AddCheck<ApolloClubCacheHealthCheck>("apollo-cache");
+
+// Club-specific health check
+public class ApolloClubServiceHealthCheck : IHealthCheck
+{
+    public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var testClubId = Guid.Parse("test-club-id");
+            var club = await _clubService.GetClubAsync(testClubId);
+            
+            var data = new Dictionary<string, object>
+            {
+                ["active_clubs"] = await _clubService.GetActiveClubCountAsync(),
+                ["total_members"] = await _memberService.GetTotalMemberCountAsync(),
+                ["subscription_distribution"] = await _clubService.GetSubscriptionDistributionAsync()
+            };
+            
+            return HealthCheckResult.Healthy("Apollo Club Service is healthy", data);
+        }
+        catch (Exception ex)
+        {
+            return HealthCheckResult.Unhealthy("Apollo Club Service is unhealthy", ex);
+        }
+    }
+}
+```
+
+## 🔐 **Apollo Security Enhancements**
+
+### 1. **Multi-Tenant Authentication & Authorization**
+```csharp
+// Enhanced JWT with club context
+public class ApolloJwtSecurityTokenHandler : ISecurityTokenValidator
+{
+    public ClaimsPrincipal ValidateToken(string token, TokenValidationParameters validationParameters, out SecurityToken validatedToken)
+    {
+        var principal = _baseHandler.ValidateToken(token, validationParameters, out validatedToken);
+        
+        // Add club-specific claims
+        var clubClaims = ExtractClubClaims(principal);
+        var identity = new ClaimsIdentity(principal.Identity);
+        identity.AddClaims(clubClaims);
+        
+        return new ClaimsPrincipal(identity);
+    }
+    
+    private IEnumerable<Claim> ExtractClubClaims(ClaimsPrincipal principal)
+    {
+        var userId = principal.FindFirst("sub")?.Value;
+        var userClubs = _clubService.GetUserClubsAsync(userId).Result;
+        
+        foreach (var club in userClubs)
+        {
+            yield return new Claim("club_id", club.Id.ToString());
+            yield return new Claim("club_role", $"{club.Id}:{club.Role}");
+            yield return new Claim("club_permissions", string.Join(",", club.Permissions));
+        }
+    }
+}
+```
+
+### 2. **Sports Data Protection**
+```csharp
+// Data classification for sports information
+public class ApolloDataClassification
+{
+    public static class Sensitivity
+    {
+        public const string Public = "Public";           // Club name, sports offered
+        public const string Internal = "Internal";       // Member lists, training schedules
+        public const string Confidential = "Confidential"; // Medical records, emergency contacts
+        public const string Restricted = "Restricted";   // Payment info, personal details
+    }
+}
+
+// Automatic data masking
+public class ApolloDataMaskingService
+{
+    public T MaskSensitiveData<T>(T data, string userRole, Guid clubId)
+    {
+        if (userRole == "ClubAdmin" || userRole == "SystemAdmin")
+            return data; // Full access
+            
+        // Mask sensitive fields based on role and club context
+        return ApplyDataMasking(data, userRole, clubId);
+    }
+}
+```
+
+### 3. **Club Access Control**
+```csharp
+// Fine-grained club permissions
+public class ApolloAuthorizationPolicyProvider : IAuthorizationPolicyProvider
+{
+    public Task<AuthorizationPolicy?> GetPolicyAsync(string policyName)
+    {
+        if (policyName.StartsWith("Club:"))
+        {
+            var parts = policyName.Split(':');
+            var clubId = parts[1];
+            var permission = parts[2];
+            
+            var policy = new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .RequireAssertion(context =>
+                {
+                    var userClubId = context.User.FindFirst("club_id")?.Value;
+                    var userPermissions = context.User.FindFirst("club_permissions")?.Value?.Split(',') ?? Array.Empty<string>();
+                    
+                    return userClubId == clubId && userPermissions.Contains(permission);
+                })
+                .Build();
+                
+            return Task.FromResult<AuthorizationPolicy?>(policy);
+        }
+        
+        return _fallbackPolicyProvider.GetPolicyAsync(policyName);
+    }
+}
+```
+
+## 🚀 **Apollo Performance Optimizations**
+
+### 1. **Multi-Tenant Database Strategy**
+```sql
+-- Apollo club-partitioned tables
+CREATE PARTITION FUNCTION pf_ApolloClubPartition (uniqueidentifier)
+AS RANGE LEFT FOR VALUES (
+    '00000000-0000-0000-0000-000000000000',
+    '40000000-0000-0000-0000-000000000000',
+    '80000000-0000-0000-0000-000000000000',
+    'C0000000-0000-0000-0000-000000000000'
+);
+
+CREATE PARTITION SCHEME ps_ApolloClubPartition
+AS PARTITION pf_ApolloClubPartition
+TO (Club_FG1, Club_FG2, Club_FG3, Club_FG4);
+
+-- Partitioned member table
+CREATE TABLE Members (
+    Id uniqueidentifier NOT NULL,
+    ClubId uniqueidentifier NOT NULL,
+    FirstName nvarchar(100) NOT NULL,
+    LastName nvarchar(100) NOT NULL,
+    Sports nvarchar(max) NULL,
+    -- other columns
+    CONSTRAINT PK_Members PRIMARY KEY (Id, ClubId)
+) ON ps_ApolloClubPartition(ClubId);
+
+-- Sports-optimized indexes
+CREATE INDEX IX_Members_Club_Sport_Active 
+ON Members (ClubId, Sports, IsActive)
+INCLUDE (FirstName, LastName, Position, MembershipType);
+
+CREATE INDEX IX_Members_Club_MembershipExpiry
+ON Members (ClubId, MembershipExpiry)
+WHERE MembershipExpiry IS NOT NULL AND IsActive = 1;
+```
+
+### 2. **Apollo Caching Strategy**
+```csharp
+// Multi-level Apollo caching
+public class ApolloMemberCacheService
+{
+    private readonly IMemoryCache _l1Cache;
+    private readonly IDistributedCache _l2Cache;
+    private readonly IMemberRepository _repository;
+    
+    public async Task<Member> GetMemberAsync(Guid memberId, Guid clubId)
+    {
+        // L1: In-memory cache (5 minutes)
+        var cacheKey = $"member:{clubId}:{memberId}";
+        var member = _l1Cache.Get<Member>(cacheKey);
+        if (member != null) return member;
+        
+        // L2: Distributed cache (1 hour)
+        member = await _l2Cache.GetAsync<Member>(cacheKey);
+        if (member != null)
+        {
+            _l1Cache.Set(cacheKey, member, TimeSpan.FromMinutes(5));
+            return member;
+        }
+        
+        // L3: Database with club context
+        member = await _repository.GetMemberByIdAsync(memberId, clubId);
+        if (member != null)
+        {
+            await _l2Cache.SetAsync(cacheKey, member, TimeSpan.FromHours(1));
+            _l1Cache.Set(cacheKey, member, TimeSpan.FromMinutes(5));
+        }
+        
+        return member;
+    }
+    
+    public async Task InvalidateMemberCacheAsync(Guid memberId, Guid clubId)
+    {
+        var cacheKey = $"member:{clubId}:{memberId}";
+        _l1Cache.Remove(cacheKey);
+        await _l2Cache.RemoveAsync(cacheKey);
+        
+        // Also invalidate related caches
+        await _l2Cache.RemoveAsync($"club:{clubId}:members");
+        await _l2Cache.RemoveAsync($"club:{clubId}:stats");
+    }
+}
+```
+
+### 3. **Apollo gRPC Optimization**
+```csharp
+// Optimized gRPC clients for Apollo services
+services.AddGrpcClient<AuthService.AuthServiceClient>(options =>
+{
+    options.Address = new Uri("https://apollo-auth:443");
 })
 .ConfigureChannel(options =>
 {
-    options.MaxReceiveMessageSize = 4 * 1024 * 1024; // 4MB
+    options.MaxReceiveMessageSize = 4 * 1024 * 1024; // 4MB for member data
     options.MaxSendMessageSize = 4 * 1024 * 1024;
     options.KeepAliveInterval = TimeSpan.FromMinutes(2);
     options.KeepAliveTimeout = TimeSpan.FromSeconds(5);
-});
+    options.HttpHandler = new SocketsHttpHandler
+    {
+        PooledConnectionLifetime = TimeSpan.FromMinutes(15),
+        EnableMultipleHttp2Connections = true
+    };
+})
+.AddInterceptor<ApolloUserContextClientInterceptor>()
+.AddInterceptor<ApolloMetricsInterceptor>()
+.AddPolicyHandler(GetRetryPolicy());
 
-// HTTP Client Connection Pooling
-services.AddHttpClient<IArticleApiClient, ArticleApiClient>(client =>
+// Club-specific connection pooling
+services.AddHttpClient<IApolloClubApiClient, ApolloClubApiClient>(client =>
 {
-    client.BaseAddress = new Uri("https://article-service:443");
+    client.BaseAddress = new Uri("https://apollo-club:443");
     client.Timeout = TimeSpan.FromSeconds(30);
 })
 .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
 {
     PooledConnectionLifetime = TimeSpan.FromMinutes(15),
-    MaxConnectionsPerServer = 20
+    MaxConnectionsPerServer = 50 // Higher for club operations
 });
 ```
 
-## 📈 **Scalability Patterns**
+## 📈 **Apollo Scalability Patterns**
 
-### 1. **Horizontal Scaling**
+### 1. **Club-Aware Horizontal Scaling**
 ```yaml
-# Kubernetes HPA
+# Kubernetes HPA for Apollo services
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: article-service-hpa
+  name: apollo-member-service-hpa
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: article-service
+    name: apollo-member-service
   minReplicas: 3
   maxReplicas: 50
   metrics:
@@ -212,195 +514,191 @@ spec:
       target:
         type: Utilization
         averageUtilization: 80
+  - type: Pods
+    pods:
+      metric:
+        name: apollo_club_operations_per_second
+      target:
+        type: AverageValue
+        averageValue: "100"
 ```
 
-### 2. **Database Scaling**
-- **Read Replicas**: Separate read and write operations
-- **Sharding**: Horizontal data partitioning
-- **Connection Pooling**: Efficient connection management
-- **Query Optimization**: Index tuning and query analysis
-
-### 3. **Message Queue Scaling**
-- **RabbitMQ Clustering**: High availability
-- **Partitioned Queues**: Parallel processing
-- **Dead Letter Queues**: Error handling
-- **Message Deduplication**: Idempotent processing
-
-## 🔄 **Deployment Strategies**
-
-### 1. **Blue-Green Deployment**
+### 2. **Apollo Load Balancing Strategy**
 ```yaml
-# Blue-Green with Kubernetes
-apiVersion: argoproj.io/v1alpha1
-kind: Rollout
+# Club-aware load balancing
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
 metadata:
-  name: article-service-rollout
+  name: apollo-member-service
 spec:
-  replicas: 5
-  strategy:
-    blueGreen:
-      activeService: article-service-active
-      previewService: article-service-preview
-      autoPromotionEnabled: false
-      scaleDownDelaySeconds: 30
-      prePromotionAnalysis:
-        templates:
-        - templateName: success-rate
-        args:
-        - name: service-name
-          value: article-service-preview
-      postPromotionAnalysis:
-        templates:
-        - templateName: success-rate
-        args:
-        - name: service-name
-          value: article-service-active
+  host: apollo-member-service
+  trafficPolicy:
+    loadBalancer:
+      consistentHash:
+        httpHeaderName: "x-club-id" # Route same club to same instance
+  subsets:
+  - name: premium
+    labels:
+      tier: premium
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 100
+        http:
+          http1MaxPendingRequests: 50
+          maxRequestsPerConnection: 10
+  - name: standard
+    labels:
+      tier: standard
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 50
+        http:
+          http1MaxPendingRequests: 25
+          maxRequestsPerConnection: 5
 ```
 
-### 2. **Canary Deployment**
-- Gradual traffic shifting
-- Automated rollback on metrics degradation
-- A/B testing capabilities
-
-### 3. **Feature Flags**
+### 3. **Apollo Event-Driven Scaling**
 ```csharp
-public class FeatureFlags
+// KEDA scaling based on Apollo events
+public class ApolloKedaScaler
 {
-    public bool UseNewArticleAlgorithm { get; set; }
-    public bool EnableAdvancedCaching { get; set; }
-    public double NewFeatureRolloutPercentage { get; set; } = 0.1;
-}
-
-// Usage
-if (_featureFlags.UseNewArticleAlgorithm && 
-    _random.NextDouble() < _featureFlags.NewFeatureRolloutPercentage)
-{
-    return await _newArticleService.ProcessAsync(request);
-}
-```
-
-## 🧪 **Testing Strategy**
-
-### 1. **Load Testing**
-```csharp
-// NBomber Load Test
-var scenario = Scenario.Create("article_creation", async context =>
-{
-    var article = new CreateArticleRequest
+    // Scale member service based on registration queue length
+    [FunctionName("MemberRegistrationScaler")]
+    public static void ScaleMemberService(
+        [KedaTrigger(
+            Type = "rabbitmq",
+            Metadata = "queueName=apollo-member-registrations;host=amqp://rabbitmq:5672"
+        )] string message)
     {
-        Title = $"Test Article {context.ScenarioInfo.CurrentOperation}",
-        Content = "Load test content",
-        Tags = ["load-test"]
-    };
+        // This function triggers scaling based on queue depth
+    }
     
-    var response = await httpClient.PostAsJsonAsync("/api/articles", article);
-    return response.IsSuccessStatusCode ? Response.Ok() : Response.Fail();
-})
-.WithLoadSimulations(
-    Simulation.InjectPerSec(rate: 100, during: TimeSpan.FromMinutes(10))
-);
-```
-
-### 2. **Chaos Engineering**
-```csharp
-// Chaos Monkey Implementation
-public class ChaosMiddleware
-{
-    public async Task InvokeAsync(HttpContext context)
+    // Scale communication service based on notification volume
+    [FunctionName("NotificationScaler")]
+    public static void ScaleCommunicationService(
+        [KedaTrigger(
+            Type = "prometheus",
+            Metadata = "serverAddress=http://prometheus:9090;metricName=apollo_notifications_pending;threshold=100"
+        )] string message)
     {
-        if (_chaosConfig.IsEnabled && _random.NextDouble() < _chaosConfig.FailureRate)
-        {
-            var chaosType = _chaosConfig.GetRandomChaosType();
-            await ApplyChaos(chaosType, context);
-            return;
-        }
-        
-        await _next(context);
+        // Scale based on pending notifications
     }
 }
 ```
 
-### 3. **Contract Testing**
-- **Pact**: Consumer-driven contract testing
-- **API Compatibility**: Backward compatibility validation
-- **Schema Evolution**: Breaking change detection
+## 🔄 **Apollo Data Management**
 
-## 📋 **Implementation Priorities**
+### 1. **Club Data Lifecycle Management**
+```csharp
+public class ApolloDataLifecycleService
+{
+    public async Task ArchiveInactiveClubDataAsync()
+    {
+        var cutoffDate = DateTime.UtcNow.AddYears(-2);
+        var inactiveClubs = await _clubRepository.GetInactiveClubsSinceAsync(cutoffDate);
+        
+        foreach (var club in inactiveClubs)
+        {
+            // Archive member data
+            var members = await _memberRepository.GetMembersByClubAsync(club.Id);
+            await _archiveStorage.ArchiveMemberDataAsync(club.Id, members);
+            
+            // Archive club communications
+            var communications = await _communicationRepository.GetClubCommunicationsAsync(club.Id);
+            await _archiveStorage.ArchiveCommunicationsAsync(club.Id, communications);
+            
+            // Update club status
+            club.MarkAsArchived();
+            await _clubRepository.UpdateAsync(club);
+        }
+    }
+    
+    public async Task CleanupExpiredMembershipsAsync()
+    {
+        var expiredMemberships = await _memberRepository.GetExpiredMembershipsAsync();
+        
+        foreach (var member in expiredMemberships)
+        {
+            // Move to expired status but keep data for renewal
+            member.MarkMembershipExpired();
+            await _memberRepository.UpdateAsync(member);
+            
+            // Send renewal notification
+            await _communicationService.SendMembershipRenewalNotificationAsync(member);
+        }
+    }
+}
+```
+
+### 2. **Apollo Backup Strategy**
+```csharp
+public class ApolloBackupService
+{
+    public async Task PerformClubBackupAsync(Guid clubId)
+    {
+        var backup = new ClubBackup
+        {
+            ClubId = clubId,
+            BackupDate = DateTime.UtcNow,
+            Members = await _memberRepository.GetMembersByClubAsync(clubId),
+            ClubSettings = await _clubRepository.GetClubSettingsAsync(clubId),
+            Communications = await _communicationRepository.GetRecentCommunicationsAsync(clubId),
+            FinancialRecords = await _financialRepository.GetClubFinancialsAsync(clubId)
+        };
+        
+        // Encrypt sensitive data
+        backup = await _encryptionService.EncryptClubBackupAsync(backup);
+        
+        // Store in multiple locations
+        await _primaryBackupStorage.StoreAsync(backup);
+        await _secondaryBackupStorage.StoreAsync(backup);
+        await _offSiteBackupStorage.StoreAsync(backup);
+        
+        // Update backup metadata
+        await _backupMetadataRepository.RecordBackupAsync(clubId, backup.BackupDate);
+    }
+}
+```
+
+## 🎯 **Apollo Performance Targets**
+
+| Metric | Target | Monitoring |
+|--------|--------|------------|
+| **Member Registration** | < 500ms | Prometheus + Grafana |
+| **Club Dashboard Load** | < 2 seconds | Application Insights |
+| **Notification Delivery** | < 5 seconds | Custom metrics |
+| **Search Response** | < 200ms | ELK Stack |
+| **Database Query** | < 100ms | SQL Server DMVs |
+| **Cache Hit Rate** | > 85% | Redis metrics |
+| **Service Availability** | 99.9% | Health checks |
+| **Concurrent Users** | 10,000+ | Load testing |
+
+## 🚀 **Implementation Roadmap**
 
 ### Phase 1: Foundation (Weeks 1-2)
-1. ✅ Implement distributed caching (Redis)
-2. ✅ Add circuit breaker patterns
-3. ✅ Set up basic monitoring (Prometheus + Grafana)
-4. ✅ Implement health checks
+- Implement club-scoped caching
+- Add sports-specific database indexes
+- Deploy basic monitoring and metrics
 
 ### Phase 2: Resilience (Weeks 3-4)
-1. ✅ Add retry policies with exponential backoff
-2. ✅ Implement bulkhead isolation
-3. ✅ Set up centralized logging (ELK)
-4. ✅ Add distributed tracing (Jaeger)
+- Implement circuit breakers for all Apollo services
+- Add retry policies with club-aware configuration
+- Deploy health monitoring and alerting
 
-### Phase 3: Security (Weeks 5-6)
-1. ✅ Implement advanced authentication
-2. ✅ Add rate limiting
-3. ✅ Set up audit logging
-4. ✅ Implement data encryption
+### Phase 3: Scale (Weeks 5-6)
+- Implement horizontal pod autoscaling
+- Deploy service mesh with club routing
+- Add KEDA-based event-driven scaling
 
-### Phase 4: Performance (Weeks 7-8)
-1. ✅ Database optimization
-2. ✅ Connection pooling
-3. ✅ Multi-level caching
-4. ✅ Query optimization
+### Phase 4: Optimization (Weeks 7-8)
+- Implement multi-level caching strategies
+- Optimize database queries and connections
+- Deploy advanced monitoring and tracing
 
-### Phase 5: Scalability (Weeks 9-10)
-1. ✅ Horizontal scaling setup
-2. ✅ Database sharding/read replicas
-3. ✅ Message queue clustering
-4. ✅ Load balancing optimization
+---
 
-## 🎯 **Success Metrics**
+**Apollo** - Building scalable, robust sports club management for the future 🚀
 
-### Performance Metrics
-- **Response Time**: P95 < 200ms, P99 < 500ms
-- **Throughput**: 10,000 requests/second
-- **Availability**: 99.9% uptime
-- **Error Rate**: < 0.1%
-
-### Scalability Metrics
-- **Auto-scaling**: Response time < 30 seconds
-- **Database**: Read replica lag < 1 second
-- **Cache Hit Rate**: > 90%
-- **Resource Utilization**: CPU < 70%, Memory < 80%
-
-### Security Metrics
-- **Authentication**: MFA adoption > 95%
-- **Vulnerability Scanning**: Zero critical vulnerabilities
-- **Audit Coverage**: 100% of sensitive operations
-- **Incident Response**: MTTD < 5 minutes, MTTR < 15 minutes
-
-## 🛠️ **Tools & Technologies**
-
-### Infrastructure
-- **Kubernetes**: Container orchestration
-- **Istio**: Service mesh
-- **Helm**: Package management
-- **ArgoCD**: GitOps deployment
-
-### Monitoring & Observability
-- **Prometheus**: Metrics collection
-- **Grafana**: Visualization
-- **Jaeger**: Distributed tracing
-- **ELK Stack**: Centralized logging
-
-### Security
-- **HashiCorp Vault**: Secret management
-- **OPA (Open Policy Agent)**: Policy enforcement
-- **Falco**: Runtime security monitoring
-- **Trivy**: Vulnerability scanning
-
-### Performance
-- **Redis**: Distributed caching
-- **Apache Kafka**: High-throughput messaging
-- **PostgreSQL**: High-performance database
-- **CDN**: Content delivery network
-
-This comprehensive improvement plan will transform your microservices architecture into a production-ready, enterprise-grade system capable of handling massive scale while maintaining high availability and security standards. 
+For support: [support@apollo-sports.com](mailto:support@apollo-sports.com) 
