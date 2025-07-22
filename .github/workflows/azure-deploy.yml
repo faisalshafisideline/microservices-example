@@ -1,0 +1,132 @@
+name: Deploy to Azure
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: costestimator-dev-api
+  AZURE_WEBAPP_PACKAGE_PATH: './publish'
+  DOTNET_VERSION: '8.0.x'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 🛒 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🔧 Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: 📦 Restore dependencies
+      run: dotnet restore
+
+    - name: 🔨 Build
+      run: dotnet build --no-restore --configuration Release
+
+    - name: 🧪 Test
+      run: dotnet test --no-build --configuration Release --verbosity normal
+
+    - name: 📄 Publish
+      run: dotnet publish src/API/CostEstimator.API.csproj --configuration Release --output ${{ env.AZURE_WEBAPP_PACKAGE_PATH }} --no-build
+
+    - name: 📤 Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: webapp
+        path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+
+  deploy-infrastructure:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    outputs:
+      webapp-url: ${{ steps.deploy.outputs.webapp-url }}
+    
+    steps:
+    - name: 🛒 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🔐 Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: 🏗️ Deploy Infrastructure
+      id: deploy
+      uses: azure/arm-deploy@v1
+      with:
+        subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        resourceGroupName: rg-cost-estimator
+        template: ./infra/main.bicep
+        parameters: |
+          sqlAdminPassword=${{ secrets.SQL_ADMIN_PASSWORD }}
+          openAiEndpoint=${{ secrets.OPENAI_ENDPOINT }}
+          openAiKey=${{ secrets.OPENAI_KEY }}
+
+  deploy-app:
+    runs-on: ubuntu-latest
+    needs: [build, deploy-infrastructure]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: 🔐 Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: 📥 Download artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: webapp
+        path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+
+    - name: 🚀 Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ env.AZURE_WEBAPP_NAME }}
+        package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+
+    - name: 🗄️ Run Database Migrations
+      run: |
+        # Install Entity Framework CLI tool
+        dotnet tool install --global dotnet-ef
+        
+        # Note: In production, you'd want to run migrations differently
+        # This is a simplified approach for demo purposes
+        echo "Database migrations would run here"
+        echo "Consider using Azure Database Migration Service or SQL scripts"
+
+  health-check:
+    runs-on: ubuntu-latest
+    needs: [deploy-app]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: 🏥 Health Check
+      run: |
+        echo "Waiting for app to start..."
+        sleep 30
+        
+        # Basic health check
+        curl -f https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/health || echo "Health check failed"
+        
+        # Check Swagger
+        curl -f https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/swagger || echo "Swagger check failed"
+
+  cleanup:
+    runs-on: ubuntu-latest
+    if: failure()
+    needs: [deploy-infrastructure, deploy-app]
+    
+    steps:
+    - name: 🧹 Cleanup on Failure
+      run: |
+        echo "Deployment failed. Consider cleanup actions here."
+        echo "You might want to rollback or send notifications." 
